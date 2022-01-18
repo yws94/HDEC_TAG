@@ -1,0 +1,547 @@
+# Makefile to compile simple examples for the DW3000
+# Arduino-type board. Specifically, this Makefile has been deveoped for the C0
+# range of DW3000 devices.
+#
+# It is designed to compile on a Raspbery Pi running Raspbian Buster (Raspbian 
+# GNU/Linux 10 (buster))
+#
+# Copyright 2020 (c) Decawave.
+
+# Library versioning is taken from deca_version.h file
+MAJOR := 4
+MINOR := 0
+PATCH := 0
+NAME := dw3000
+VERSION := $(MAJOR).$(MINOR).$(PATCH)
+
+LIB_NAME := lib$(NAME).so
+LIB_SONAME := lib$(NAME).so.$(VERSION)
+LIB_SOVERSION := lib$(NAME).so.$(MAJOR).$(MINOR)
+
+PREFIX := /usr/lib
+
+SRC_DIR := Src
+EXAMPLES_DIR := examples
+TEST_DIR := $(SRC_DIR)/$(EXAMPLES_DIR)
+OUTPUT_DIR := ./output
+
+EXE_SRCS :=Src/main_rpi.c \
+$(shell find ./$(TEST_DIR)/examples_info -name *.c)
+
+TEST_READING_DEV_ID:=test_reading_dev_id
+TEST_READING_DEV_ID_FLAGS:=-DTEST_READING_DEV_ID
+TEST_READING_DEV_ID_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_00a_reading_dev_id/read_dev_id.c
+TEST_READING_DEV_ID_BUILD_DIR:=$(OUTPUT_DIR)/ex_00a_reading_dev_id
+TEST_READING_DEV_ID_OBJS:=\
+$(TEST_READING_DEV_ID_SRCS:%=$(TEST_READING_DEV_ID_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_TX:=test_simple_tx
+TEST_SIMPLE_TX_FLAGS:=-DTEST_SIMPLE_TX
+TEST_SIMPLE_TX_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01a_simple_tx/simple_tx.c
+TEST_SIMPLE_TX_BUILD_DIR:=$(OUTPUT_DIR)/ex_01a_simple_tx
+TEST_SIMPLE_TX_OBJS:=$(TEST_SIMPLE_TX_SRCS:%=$(TEST_SIMPLE_TX_BUILD_DIR)/%.o)
+
+TEST_TX_SLEEP:=test_tx_sleep
+TEST_TX_SLEEP_FLAGS:=-DTEST_TX_SLEEP
+TEST_TX_SLEEP_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01b_tx_sleep/tx_sleep.c
+TEST_TX_SLEEP_BUILD_DIR:=$(OUTPUT_DIR)/ex_01b_tx_sleep
+TEST_TX_SLEEP_OBJS:=$(TEST_TX_SLEEP_SRCS:%=$(TEST_TX_SLEEP_BUILD_DIR)/%.o)
+
+TEST_TX_SLEEP_IDLE_RC:=test_tx_sleep_idle_rc
+TEST_TX_SLEEP_IDLE_RC_FLAGS:=-DTEST_TX_SLEEP_IDLE_RC
+TEST_TX_SLEEP_IDLE_RC_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01b_tx_sleep/tx_sleep_idleRC.c
+TEST_TX_SLEEP_IDLE_RC_BUILD_DIR:=$(OUTPUT_DIR)/ex_01b_tx_sleep_idleRC
+TEST_TX_SLEEP_IDLE_RC_OBJS:=\
+$(TEST_TX_SLEEP_IDLE_RC_SRCS:%=$(TEST_TX_SLEEP_IDLE_RC_BUILD_DIR)/%.o)
+
+TEST_TX_SLEEP_AUTO:=test_tx_sleep_auto
+TEST_TX_SLEEP_AUTO_FLAGS:=-DTEST_TX_SLEEP_AUTO
+TEST_TX_SLEEP_AUTO_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01c_tx_sleep_auto/tx_sleep_auto.c
+TEST_TX_SLEEP_AUTO_BUILD_DIR:=$(OUTPUT_DIR)/ex_01c_tx_sleep_auto
+TEST_TX_SLEEP_AUTO_OBJS:=\
+$(TEST_TX_SLEEP_AUTO_SRCS:%=$(TEST_TX_SLEEP_AUTO_BUILD_DIR)/%.o)
+
+TEST_TX_SLEEP_TIMED:=test_tx_sleep_timed
+TEST_TX_SLEEP_TIMED_FLAGS:=-DTEST_TX_SLEEP_TIMED
+TEST_TX_SLEEP_TIMED_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01d_tx_timed_sleep/tx_timed_sleep.c
+TEST_TX_SLEEP_TIMED_BUILD_DIR:=$(OUTPUT_DIR)/ex_01d_tx_timed_sleep
+TEST_TX_SLEEP_TIMED_OBJS:=\
+$(TEST_TX_SLEEP_TIMED_SRCS:%=$(TEST_TX_SLEEP_TIMED_BUILD_DIR)/%.o)
+
+TEST_TX_WITH_CCA:=test_tx_with_cca
+TEST_TX_WITH_CCA_FLAGS:=-DTEST_TX_WITH_CCA
+TEST_TX_WITH_CCA_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01e_tx_with_cca/tx_with_cca.c
+TEST_TX_WITH_CCA_BUILD_DIR:=$(OUTPUT_DIR)/ex_01e_tx_with_cca
+TEST_TX_WITH_CCA_OBJS:=\
+$(TEST_TX_WITH_CCA_SRCS:%=$(TEST_TX_WITH_CCA_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_TX_STS_SDC:=test_simple_tx_sts_sdc
+TEST_SIMPLE_TX_STS_SDC_FLAGS:=-DTEST_SIMPLE_TX_STS_SDC
+TEST_SIMPLE_TX_STS_SDC_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01g_simple_tx_sts_sdc/simple_tx_sts_sdc.c
+TEST_SIMPLE_TX_STS_SDC_BUILD_DIR:=$(OUTPUT_DIR)/ex_01g_simple_tx_sts_sdc
+TEST_SIMPLE_TX_STS_SDC_OBJS:=\
+$(TEST_SIMPLE_TX_STS_SDC_SRCS:%=$(TEST_SIMPLE_TX_STS_SDC_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_TX_PDOA:=test_simple_tx_pdoa
+TEST_SIMPLE_TX_PDOA_FLAGS:=-DTEST_SIMPLE_TX_PDOA
+TEST_SIMPLE_TX_PDOA_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01h_simple_tx_pdoa/simple_tx_pdoa.c
+TEST_SIMPLE_TX_PDOA_BUILD_DIR:=$(OUTPUT_DIR)/ex_01h_simple_tx_pdoa
+TEST_SIMPLE_TX_PDOA_OBJS:=\
+$(TEST_SIMPLE_TX_PDOA_SRCS:%=$(TEST_SIMPLE_TX_PDOA_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_TX_AES:=test_simple_tx_aes
+TEST_SIMPLE_TX_AES_FLAGS:=-DTEST_SIMPLE_TX_AES
+TEST_SIMPLE_TX_AES_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_01i_simple_tx_aes/simple_tx_aes.c
+TEST_SIMPLE_TX_AES_BUILD_DIR:=$(OUTPUT_DIR)/ex_01i_simple_tx_aes
+TEST_SIMPLE_TX_AES_OBJS:=\
+$(TEST_SIMPLE_TX_AES_SRCS:%=$(TEST_SIMPLE_TX_AES_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_RX:=test_simple_rx
+TEST_SIMPLE_RX_FLAGS:=-DTEST_SIMPLE_RX
+TEST_SIMPLE_RX_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_02a_simple_rx/simple_rx.c
+TEST_SIMPLE_RX_BUILD_DIR:=$(OUTPUT_DIR)/ex_02a_simple_rx
+TEST_SIMPLE_RX_OBJS:=$(TEST_SIMPLE_RX_SRCS:%=$(TEST_SIMPLE_RX_BUILD_DIR)/%.o)
+
+TEST_RX_DIAG:=test_rx_diag
+TEST_RX_DIAG_FLAGS:=-DTEST_RX_DIAG
+TEST_RX_DIAG_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_02c_rx_diagnostics/rx_diagnostics.c
+TEST_RX_DIAG_BUILD_DIR:=$(OUTPUT_DIR)/ex_02c_rx_diagnostics
+TEST_RX_DIAG_OBJS:=$(TEST_RX_DIAG_SRCS:%=$(TEST_RX_DIAG_BUILD_DIR)/%.o)
+
+TEST_RX_SNIFF:=test_rx_sniff
+TEST_RX_SNIFF_FLAGS:=-DTEST_RX_SNIFF
+TEST_RX_SNIFF_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_02d_rx_sniff/rx_sniff.c
+TEST_RX_SNIFF_BUILD_DIR:=$(OUTPUT_DIR)/ex_02d_rx_sniff
+TEST_RX_SNIFF_OBJS:=$(TEST_RX_SNIFF_SRCS:%=$(TEST_RX_SNIFF_BUILD_DIR)/%.o)
+
+TEST_RX_TRIM:=test_rx_trim
+TEST_RX_TRIM_FLAGS:=-DTEST_RX_TRIM
+TEST_RX_TRIM_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_02f_rx_with_crystal_trim/rx_with_xtal_trim.c
+TEST_RX_TRIM_BUILD_DIR:=$(OUTPUT_DIR)/ex_02f_rx_with_crystal_trim
+TEST_RX_TRIM_OBJS:=$(TEST_RX_TRIM_SRCS:%=$(TEST_RX_TRIM_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_RX_STS_SDC:=test_simple_rx_sts_sdc
+TEST_SIMPLE_RX_STS_SDC_FLAGS:=-DTEST_SIMPLE_RX_STS_SDC
+TEST_SIMPLE_RX_STS_SDC_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_02g_simple_rx_sts_sdc/simple_rx_sts_sdc.c
+TEST_SIMPLE_RX_STS_SDC_BUILD_DIR:=$(OUTPUT_DIR)/ex_02g_simple_rx_sts_sdc
+TEST_SIMPLE_RX_STS_SDC_OBJS:=\
+$(TEST_SIMPLE_RX_STS_SDC_SRCS:%=$(TEST_SIMPLE_RX_STS_SDC_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_RX_PDOA:=test_simple_rx_pdoa
+TEST_SIMPLE_RX_PDOA_FLAGS:=-DTEST_SIMPLE_RX_PDOA
+TEST_SIMPLE_RX_PDOA_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_02h_simple_rx_pdoa/simple_rx_pdoa.c
+TEST_SIMPLE_RX_PDOA_BUILD_DIR:=$(OUTPUT_DIR)/ex_02h_simple_rx_pdoa
+TEST_SIMPLE_RX_PDOA_OBJS:=\
+$(TEST_SIMPLE_RX_PDOA_SRCS:%=$(TEST_SIMPLE_RX_PDOA_BUILD_DIR)/%.o)
+
+TEST_SIMPLE_RX_AES:=test_simple_rx_aes
+TEST_SIMPLE_RX_AES_FLAGS:=-DTEST_SIMPLE_RX_AES
+TEST_SIMPLE_RX_AES_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_02i_simple_rx_aes/simple_rx_aes.c
+TEST_SIMPLE_RX_AES_BUILD_DIR:=$(OUTPUT_DIR)/ex_02i_simple_rx_aes
+TEST_SIMPLE_RX_AES_OBJS:=\
+$(TEST_SIMPLE_RX_AES_SRCS:%=$(TEST_SIMPLE_RX_AES_BUILD_DIR)/%.o)
+
+TEST_TX_WAIT_RESP:=test_tx_wait_resp
+TEST_TX_WAIT_RESP_FLAGS:=-DTEST_TX_WAIT_RESP
+TEST_TX_WAIT_RESP_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_03a_tx_wait_resp/tx_wait_resp.c
+TEST_TX_WAIT_RESP_BUILD_DIR:=$(OUTPUT_DIR)/ex_03a_tx_wait_resp
+TEST_TX_WAIT_RESP_OBJS:=\
+$(TEST_TX_WAIT_RESP_SRCS:%=$(TEST_TX_WAIT_RESP_BUILD_DIR)/%.o)
+
+TEST_RX_SEND_RESP:=test_rx_send_resp
+TEST_RX_SEND_RESP_FLAGS:=-DTEST_RX_SEND_RESP
+TEST_RX_SEND_RESP_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_03b_rx_send_resp/rx_send_resp.c
+TEST_RX_SEND_RESP_BUILD_DIR:=$(OUTPUT_DIR)/ex_03b_rx_send_resp
+TEST_RX_SEND_RESP_OBJS:=\
+$(TEST_RX_SEND_RESP_SRCS:%=$(TEST_RX_SEND_RESP_BUILD_DIR)/%.o)
+
+TEST_TX_WAIT_RESP_INT:=test_tx_wait_resp_int
+TEST_TX_WAIT_RESP_INT_FLAGS:=-DTEST_TX_WAIT_RESP_INT
+TEST_TX_WAIT_RESP_INT_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_03d_tx_wait_resp_interrupts/tx_wait_resp_int.c
+TEST_TX_WAIT_RESP_INT_BUILD_DIR:=$(OUTPUT_DIR)/ex_03d_tx_wait_resp_interrupts
+TEST_TX_WAIT_RESP_INT_OBJS:=\
+$(TEST_TX_WAIT_RESP_INT_SRCS:%=$(TEST_TX_WAIT_RESP_INT_BUILD_DIR)/%.o)
+
+TEST_CONTINUOUS_WAVE:=test_continuous_wave
+TEST_CONTINUOUS_WAVE_FLAGS:=-DTEST_CONTINUOUS_WAVE
+TEST_CONTINUOUS_WAVE_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_04a_cont_wave/continuous_wave.c
+TEST_CONTINUOUS_WAVE_BUILD_DIR:=$(OUTPUT_DIR)/ex_04a_cont_wave
+TEST_CONTINUOUS_WAVE_OBJS:=\
+$(TEST_CONTINUOUS_WAVE_SRCS:%=$(TEST_CONTINUOUS_WAVE_BUILD_DIR)/%.o)
+
+TEST_CONTINUOUS_FRAME:=test_continuous_frame
+TEST_CONTINUOUS_FRAME_FLAGS:=-DTEST_CONTINUOUS_FRAME
+TEST_CONTINUOUS_FRAME_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_04b_cont_frame/continuous_frame.c
+TEST_CONTINUOUS_FRAME_BUILD_DIR:=$(OUTPUT_DIR)/ex_04b_cont_frame
+TEST_CONTINUOUS_FRAME_OBJS:=\
+$(TEST_CONTINUOUS_FRAME_SRCS:%=$(TEST_CONTINUOUS_FRAME_BUILD_DIR)/%.o)
+
+TEST_DS_TWR_INITIATOR:=test_ds_twr_initiator
+TEST_DS_TWR_INITIATOR_FLAGS:=-DTEST_DS_TWR_INITIATOR
+TEST_DS_TWR_INITIATOR_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_05a_ds_twr_init/ds_twr_initiator.c
+TEST_DS_TWR_INITIATOR_BUILD_DIR:=$(OUTPUT_DIR)/ex_05a_ds_twr_init
+TEST_DS_TWR_INITIATOR_OBJS:=\
+$(TEST_DS_TWR_INITIATOR_SRCS:%=$(TEST_DS_TWR_INITIATOR_BUILD_DIR)/%.o)
+
+TEST_DS_TWR_INITIATOR_STS:=test_ds_twr_initiator_sts
+TEST_DS_TWR_INITIATOR_STS_FLAGS:=-DTEST_DS_TWR_INITIATOR_STS
+TEST_DS_TWR_INITIATOR_STS_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_05a_ds_twr_init/ds_twr_initiator_sts.c
+TEST_DS_TWR_INITIATOR_STS_BUILD_DIR:=$(OUTPUT_DIR)/ex_05a_ds_twr_init_sts
+TEST_DS_TWR_INITIATOR_STS_OBJS:=\
+$(TEST_DS_TWR_INITIATOR_STS_SRCS:%=$(TEST_DS_TWR_INITIATOR_STS_BUILD_DIR)/%.o)
+
+TEST_DS_TWR_RESPONDER:=test_ds_twr_responder
+TEST_DS_TWR_RESPONDER_FLAGS:=-DTEST_DS_TWR_RESPONDER
+TEST_DS_TWR_RESPONDER_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_05b_ds_twr_resp/ds_twr_responder.c
+TEST_DS_TWR_RESPONDER_BUILD_DIR:=$(OUTPUT_DIR)/ex_05b_ds_twr_resp
+TEST_DS_TWR_RESPONDER_OBJS:=\
+$(TEST_DS_TWR_RESPONDER_SRCS:%=$(TEST_DS_TWR_RESPONDER_BUILD_DIR)/%.o)
+
+TEST_DS_TWR_RESPONDER_STS:=test_ds_twr_responder_sts
+TEST_DS_TWR_RESPONDER_STS_FLAGS:=-DTEST_DS_TWR_RESPONDER_STS
+TEST_DS_TWR_RESPONDER_STS_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_05b_ds_twr_resp/ds_twr_responder_sts.c
+TEST_DS_TWR_RESPONDER_STS_BUILD_DIR:=$(OUTPUT_DIR)/ex_05b_ds_twr_resp_sts
+TEST_DS_TWR_RESPONDER_STS_OBJS:=\
+$(TEST_DS_TWR_RESPONDER_STS_SRCS:%=$(TEST_DS_TWR_RESPONDER_STS_BUILD_DIR)/%.o)
+
+TEST_DS_TWR_STS_SDC_INITIATOR:=test_ds_twr_sts_sdc_initiator
+TEST_DS_TWR_STS_SDC_INITIATOR_FLAGS:=-DTEST_DS_TWR_STS_SDC_INITIATOR
+TEST_DS_TWR_STS_SDC_INITIATOR_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_05c_ds_twr_init_sts_sdc/ds_twr_sts_sdc_initiator.c
+TEST_DS_TWR_STS_SDC_INITIATOR_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_05c_ds_twr_init_sts_sdc
+TEST_DS_TWR_STS_SDC_INITIATOR_OBJS:=\
+$(TEST_DS_TWR_STS_SDC_INITIATOR_SRCS:%=\
+$(TEST_DS_TWR_STS_SDC_INITIATOR_BUILD_DIR)/%.o)
+
+TEST_DS_TWR_STS_SDC_RESPONDER:=test_ds_twr_sts_sdc_responder
+TEST_DS_TWR_STS_SDC_RESPONDER_FLAGS:=-DTEST_DS_TWR_STS_SDC_RESPONDER
+TEST_DS_TWR_STS_SDC_RESPONDER_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_05d_ds_twr_resp_sts_sdc/ds_twr_sts_sdc_responder.c
+TEST_DS_TWR_STS_SDC_RESPONDER_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_05d_ds_twr_resp_sts_sdc
+TEST_DS_TWR_STS_SDC_RESPONDER_OBJS:=\
+$(TEST_DS_TWR_STS_SDC_RESPONDER_SRCS:%=\
+$(TEST_DS_TWR_STS_SDC_RESPONDER_BUILD_DIR)/%.o)
+
+TEST_SS_TWR_INITIATOR:=test_ss_twr_initiator
+TEST_SS_TWR_INITIATOR_FLAGS:=-DTEST_SS_TWR_INITIATOR
+TEST_SS_TWR_INITIATOR_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06a_ss_twr_initiator/ss_twr_initiator.c
+TEST_SS_TWR_INITIATOR_BUILD_DIR:=$(OUTPUT_DIR)/ex_06a_ss_twr_initiator
+TEST_SS_TWR_INITIATOR_OBJS:=\
+$(TEST_SS_TWR_INITIATOR_SRCS:%=$(TEST_SS_TWR_INITIATOR_BUILD_DIR)/%.o)
+
+TEST_SS_TWR_INITIATOR_STS:=test_ss_twr_initiator_sts
+TEST_SS_TWR_INITIATOR_STS_FLAGS:=-DTEST_SS_TWR_INITIATOR_STS
+TEST_SS_TWR_INITIATOR_STS_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06a_ss_twr_initiator/ss_twr_initiator_sts.c
+TEST_SS_TWR_INITIATOR_STS_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_06a_ss_twr_initiator_sts
+TEST_SS_TWR_INITIATOR_STS_OBJS:=\
+$(TEST_SS_TWR_INITIATOR_STS_SRCS:%=$(TEST_SS_TWR_INITIATOR_STS_BUILD_DIR)/%.o)
+
+TEST_SS_TWR_INITIATOR_STS_NO_DATA:=test_ss_twr_initiator_sts_no_data
+TEST_SS_TWR_INITIATOR_STS_NO_DATA_FLAGS:=-DTEST_SS_TWR_INITIATOR_STS_NO_DATA
+TEST_SS_TWR_INITIATOR_STS_NO_DATA_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06a_ss_twr_initiator/ss_twr_initiator_sts_no_data.c
+TEST_SS_TWR_INITIATOR_STS_NO_DATA_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_06a_ss_twr_initiator_sts_no_data
+TEST_SS_TWR_INITIATOR_STS_NO_DATA_OBJS:=\
+$(TEST_SS_TWR_INITIATOR_STS_NO_DATA_SRCS:%=\
+$(TEST_SS_TWR_INITIATOR_STS_NO_DATA_BUILD_DIR)/%.o)
+
+TEST_SS_TWR_RESPONDER:=test_ss_twr_responder
+TEST_SS_TWR_RESPONDER_FLAGS:=-DTEST_SS_TWR_RESPONDER
+TEST_SS_TWR_RESPONDER_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06b_ss_twr_responder/ss_twr_responder.c
+TEST_SS_TWR_RESPONDER_BUILD_DIR:=$(OUTPUT_DIR)/ex_06b_ss_twr_responder
+TEST_SS_TWR_RESPONDER_OBJS:=\
+$(TEST_SS_TWR_RESPONDER_SRCS:%=$(TEST_SS_TWR_RESPONDER_BUILD_DIR)/%.o)
+
+TEST_SS_TWR_RESPONDER_STS:=test_ss_twr_responder_sts
+TEST_SS_TWR_RESPONDER_STS_FLAGS:=-DTEST_SS_TWR_RESPONDER_STS
+TEST_SS_TWR_RESPONDER_STS_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06b_ss_twr_responder/ss_twr_responder_sts.c
+TEST_SS_TWR_RESPONDER_STS_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_06b_ss_twr_responder_sts
+TEST_SS_TWR_RESPONDER_STS_OBJS:=\
+$(TEST_SS_TWR_RESPONDER_STS_SRCS:%=$(TEST_SS_TWR_RESPONDER_STS_BUILD_DIR)/%.o)
+
+TEST_SS_TWR_RESPONDER_STS_NO_DATA:=test_ss_twr_responder_sts_no_data
+TEST_SS_TWR_RESPONDER_STS_NO_DATA_FLAGS:=-DTEST_SS_TWR_RESPONDER_STS_NO_DATA
+TEST_SS_TWR_RESPONDER_STS_NO_DATA_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06b_ss_twr_responder/ss_twr_responder_sts_no_data.c
+TEST_SS_TWR_RESPONDER_STS_NO_DATA_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_06b_ss_twr_responder_sts_no_data
+TEST_SS_TWR_RESPONDER_STS_NO_DATA_OBJS:=\
+$(TEST_SS_TWR_RESPONDER_STS_NO_DATA_SRCS:%=\
+$(TEST_SS_TWR_RESPONDER_STS_NO_DATA_BUILD_DIR)/%.o)
+
+TEST_AES_SS_TWR_INITIATOR:=test_aes_ss_twr_initiator
+TEST_AES_SS_TWR_INITIATOR_FLAGS:=-DTEST_AES_SS_TWR_INITIATOR
+TEST_AES_SS_TWR_INITIATOR_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06e_AES_ss_twr_initiator/ss_aes_twr_initiator.c
+TEST_AES_SS_TWR_INITIATOR_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_06e_AES_ss_twr_initiator
+TEST_AES_SS_TWR_INITIATOR_OBJS:=\
+$(TEST_AES_SS_TWR_INITIATOR_SRCS:%=$(TEST_AES_SS_TWR_INITIATOR_BUILD_DIR)/%.o)
+
+TEST_AES_SS_TWR_RESPONDER:=test_aes_ss_twr_responder
+TEST_AES_SS_TWR_RESPONDER_FLAGS:=-DTEST_AES_SS_TWR_RESPONDER
+TEST_AES_SS_TWR_RESPONDER_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_06f_AES_ss_twr_responder/ss_aes_twr_responder.c
+TEST_AES_SS_TWR_RESPONDER_BUILD_DIR:=$(OUTPUT_DIR)/ex_06f_AES_ss_twr_responder
+TEST_AES_SS_TWR_RESPONDER_OBJS:=\
+$(TEST_AES_SS_TWR_RESPONDER_SRCS:%=$(TEST_AES_SS_TWR_RESPONDER_BUILD_DIR)/%.o)
+
+TEST_ACK_DATA_TX:=test_ack_data_tx
+TEST_ACK_DATA_TX_FLAGS:=-DTEST_ACK_DATA_TX
+TEST_ACK_DATA_TX_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_07a_ack_data_tx/ack_data_tx.c
+TEST_ACK_DATA_TX_BUILD_DIR:=$(OUTPUT_DIR)/ex_07a_ack_data_tx
+TEST_ACK_DATA_TX_OBJS:=\
+$(TEST_ACK_DATA_TX_SRCS:%=$(TEST_ACK_DATA_TX_BUILD_DIR)/%.o)
+
+TEST_ACK_DATA_RX:=test_ack_data_rx
+TEST_ACK_DATA_RX_FLAGS:=-DTEST_ACK_DATA_RX
+TEST_ACK_DATA_RX_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_07b_ack_data_rx/ack_data_rx.c
+TEST_ACK_DATA_RX_BUILD_DIR:=$(OUTPUT_DIR)/ex_07b_ack_data_rx
+TEST_ACK_DATA_RX_OBJS:=\
+$(TEST_ACK_DATA_RX_SRCS:%=$(TEST_ACK_DATA_RX_BUILD_DIR)/%.o)
+
+TEST_ACK_DATA_RX_DBL_BUFF:=test_ack_data_rx_dbl_buff
+TEST_ACK_DATA_RX_DBL_BUFF_FLAGS:=-DTEST_ACK_DATA_RX_DBL_BUFF
+TEST_ACK_DATA_RX_DBL_BUFF_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_07c_ack_data_rx_dbl_buff/ack_data_rx_dbl_buff.c
+TEST_ACK_DATA_RX_DBL_BUFF_BUILD_DIR:=\
+$(OUTPUT_DIR)/ex_07c_ack_data_rx_dbl_buff
+TEST_ACK_DATA_RX_DBL_BUFF_OBJS:=\
+$(TEST_ACK_DATA_RX_DBL_BUFF_SRCS:%=$(TEST_ACK_DATA_RX_DBL_BUFF_BUILD_DIR)/%.o)
+
+TEST_SPI_CRC:=test_spi_crc
+TEST_SPI_CRC_FLAGS:=-DTEST_SPI_CRC
+TEST_SPI_CRC_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_11a_spi_crc/spi_crc.c
+TEST_SPI_CRC_BUILD_DIR:=$(OUTPUT_DIR)/ex_11a_spi_crc
+TEST_SPI_CRC_OBJS:=$(TEST_SPI_CRC_SRCS:%=$(TEST_SPI_CRC_BUILD_DIR)/%.o)
+
+TEST_GPIO:=test_gpio
+TEST_GPIO_FLAGS:=-DTEST_GPIO
+TEST_GPIO_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_13a_gpio/gpio_example.c
+TEST_GPIO_BUILD_DIR:=$(OUTPUT_DIR)/ex_13a_gpio
+TEST_GPIO_OBJS:=$(TEST_GPIO_SRCS:%=$(TEST_GPIO_BUILD_DIR)/%.o)
+
+TEST_OTP_WRITE:=test_otp_write
+TEST_OTP_WRITE_FLAGS:=-DTEST_OTP_WRITE
+TEST_OTP_WRITE_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_14_otp_write/otp_write.c
+TEST_OTP_WRITE_BUILD_DIR:=$(OUTPUT_DIR)/ex_14_otp_write
+TEST_OTP_WRITE_OBJS:=$(TEST_OTP_WRITE_SRCS:%=$(TEST_OTP_WRITE_BUILD_DIR)/%.o)
+
+TEST_LE_PEND_RX:=test_le_pend_rx
+TEST_LE_PEND_RX_FLAGS:=-DTEST_LE_PEND_RX
+TEST_LE_PEND_RX_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_15_le_pend/le_pend_rx.c
+TEST_LE_PEND_RX_BUILD_DIR:=$(OUTPUT_DIR)/ex_15_le_pend_rx
+TEST_LE_PEND_RX_OBJS:=\
+$(TEST_LE_PEND_RX_SRCS:%=$(TEST_LE_PEND_RX_BUILD_DIR)/%.o)
+
+TEST_LE_PEND_TX:=test_le_pend_tx
+TEST_LE_PEND_TX_FLAGS:=-DTEST_LE_PEND_TX
+TEST_LE_PEND_TX_SRCS:=$(EXE_SRCS) \
+$(TEST_DIR)/ex_15_le_pend/le_pend_tx.c
+TEST_LE_PEND_TX_BUILD_DIR:=$(OUTPUT_DIR)/ex_15_le_pend_tx
+TEST_LE_PEND_TX_OBJS:=\
+$(TEST_LE_PEND_TX_SRCS:%=$(TEST_LE_PEND_TX_BUILD_DIR)/%.o)
+
+LIB_DIR ?= $(OUTPUT_DIR)/lib$(NAME)
+SHARED_EX_DIR ?= $(OUTPUT_DIR)/shared_examples
+MKDIR_P ?= mkdir -p
+
+LIB_SRCS := $(shell find ./Src/MAC_802_15_8 -name *.c) \
+$(shell find ./Src/MAC_802_15_4 -name *.c) \
+$(shell find ./Src/decadriver -name *.c) \
+$(shell find ./Src/platform_rpi -name *.c)
+
+SHARED_EX_SRCS := Src/config_options.c \
+$(shell find ./$(TEST_DIR)/shared_data -name *.c)
+
+LIB_OBJS := $(LIB_SRCS:%=$(LIB_DIR)/%.o)
+SHARED_EX_OBJS := $(SHARED_EX_SRCS:%=$(SHARED_EX_DIR)/%.o)
+
+EXE_INC_DIRS := ./Inc \
+./Src \
+./Src/decadriver \
+./Src/platform_rpi \
+./$(TEST_DIR)/examples_info \
+./$(TEST_DIR)/shared_data \
+./Src/MAC_802_15_8 \
+./Src/MAC_802_15_4
+EXE_INC_FLAGS := $(addprefix -I,$(EXE_INC_DIRS))
+
+LD_INC_DIRS := $(LIB_DIR)
+LD_INC_FLAGS := $(addprefix -L,$(LD_INC_DIRS))
+
+CFLAGS= -g -fPIC -Wall -Wextra -pedantic -std=c11 -D _DEFAULT_SOURCE -DRPI_BUILD -O2 -Os -g \
+-pipe -W -fstack-clash-protection -fstack-protector
+EXE_LDFLAGS=$(LD_INC_FLAGS) -fPIC -lwiringPi -Wl,-O1 -Wl,-z,defs -Wl,-z,now
+
+# List of simple examples to build. Edit this list to change which executables are built.
+TEST_PROGRAMS:=$(TEST_READING_DEV_ID) \
+$(TEST_SIMPLE_TX) \
+$(TEST_SIMPLE_TX_PDOA) \
+$(TEST_TX_SLEEP) \
+$(TEST_TX_SLEEP_IDLE_RC) \
+$(TEST_TX_SLEEP_AUTO) \
+$(TEST_TX_SLEEP_TIMED) \
+$(TEST_TX_WITH_CCA) \
+$(TEST_SIMPLE_RX) \
+$(TEST_RX_DIAG) \
+$(TEST_RX_SNIFF) \
+$(TEST_RX_TRIM) \
+$(TEST_SIMPLE_RX_PDOA) \
+$(TEST_SIMPLE_TX_STS_SDC) \
+$(TEST_SIMPLE_RX_STS_SDC) \
+$(TEST_SIMPLE_TX_AES) \
+$(TEST_SIMPLE_RX_AES) \
+$(TEST_TX_WAIT_RESP) \
+$(TEST_TX_WAIT_RESP_INT) \
+$(TEST_RX_SEND_RESP) \
+$(TEST_CONTINUOUS_WAVE) \
+$(TEST_CONTINUOUS_FRAME) \
+$(TEST_DS_TWR_INITIATOR_STS) \
+$(TEST_DS_TWR_RESPONDER_STS) \
+$(TEST_DS_TWR_INITIATOR) \
+$(TEST_DS_TWR_RESPONDER) \
+$(TEST_DS_TWR_STS_SDC_INITIATOR) \
+$(TEST_DS_TWR_STS_SDC_RESPONDER) \
+$(TEST_SS_TWR_INITIATOR) \
+$(TEST_SS_TWR_RESPONDER) \
+$(TEST_SS_TWR_INITIATOR_STS) \
+$(TEST_SS_TWR_RESPONDER_STS) \
+$(TEST_SS_TWR_INITIATOR_STS_NO_DATA) \
+$(TEST_SS_TWR_RESPONDER_STS_NO_DATA) \
+$(TEST_AES_SS_TWR_INITIATOR) \
+$(TEST_AES_SS_TWR_RESPONDER) \
+$(TEST_ACK_DATA_TX) \
+$(TEST_ACK_DATA_RX) \
+$(TEST_ACK_DATA_RX_DBL_BUFF) \
+$(TEST_SPI_CRC) \
+$(TEST_GPIO) \
+$(TEST_OTP_WRITE) \
+$(TEST_LE_PEND_TX) \
+$(TEST_LE_PEND_RX)
+
+.PHONY: all
+all: $(LIB_DIR)/$(LIB_NAME) \
+$(TEST_PROGRAMS)
+
+# Function to convert a string from lowercase to uppercase.
+define change_to_uppercase
+	$(shell echo $(1) | tr a-z A-Z)
+endef
+
+# Function that is used to define the dependencies for each simple example
+# make rule.
+define test_program_build_template
+ # Get the uppercase string of the current simple example.
+ $(eval PROG:=$(call change_to_uppercase,$(1)))
+ # Set the dependencies for the current simple example.
+ $(1): $(SHARED_EX_OBJS) $$($(PROG)_OBJS) $(LIB_DIR)/$(LIB_NAME)
+ 
+ # Create a rule for each of the simple examples unique objects.
+ $$($(PROG)_BUILD_DIR)/%.c.o: %.c
+	@echo "Building target" $$@ "..."
+	$(MKDIR_P) $$(dir $$@)
+	$(CC) $(CFLAGS) $$($(PROG)_FLAGS) $(EXE_INC_FLAGS) -c $$< -o $$@
+ 
+ # Add the unique CFLAG required for each of the simple examples.
+ $$($(PROG)_BUILD_DIR)/%.c.o: CFLAGS += $$($(PROG)_FLAGS)
+endef
+
+# Call the function that sorts out the required target rules for each simple
+# example.
+$(foreach test_program,$(TEST_PROGRAMS),\
+$(eval $(call test_program_build_template,$(test_program))))
+
+# Generic rule for all the simple example executable builds.
+$(TEST_PROGRAMS):
+	# Using the current target, grab some required variables that were set
+	# above.
+	$(eval PROG:=$(call change_to_uppercase,$(@)))
+	$(eval PROG_FLAGS:=$($(PROG)_FLAGS))
+	$(eval PROG_OBJS:=$($(PROG)_OBJS))
+	$(eval PROG_BUILD_DIR:=$($(PROG)_BUILD_DIR))
+	@echo "Building target" $@ "..."
+	$(CC) $(CFLAGS) $(PROG_FLAGS) -o $(PROG_BUILD_DIR)/$@ $(EXE_LDFLAGS) \
+	$(SHARED_EX_OBJS) $(PROG_OBJS) -l$(NAME)
+
+# libdw3000
+# Rule to link objects together and create symlinks (for versioning).
+$(LIB_DIR)/$(LIB_NAME): $(LIB_OBJS)
+	@echo "Building target" $@ "..."
+	$(CC) -shared $(CFLAGS) $^ -Wl,-soname -Wl,$(LIB_SOVERSION) -o \
+	$(LIB_DIR)/$(LIB_SONAME) && \
+		ln -sf $(LIB_SONAME) $(LIB_DIR)/$(LIB_SOVERSION) && \
+		ln -sf $(LIB_SOVERSION) $(LIB_DIR)/$(LIB_NAME)
+
+# Rule to compile objects required for libdw3000 shared library.
+$(LIB_DIR)/%.c.o: %.c
+	@echo "Building target" $@ "..."
+	$(MKDIR_P) $(dir $@)
+	$(CC) $(CFLAGS) $(EXE_INC_FLAGS) -c $< -o $@
+
+# Rule to compile the objects that are shared between all test programs.
+$(SHARED_EX_DIR)/%.c.o : %.c
+	@echo "Building target" $@ "..."
+	$(MKDIR_P) $(dir $@)
+	$(CC) $(CFLAGS) $(EXE_INC_FLAGS) -c $< -o $@
+
+# Rule to install the libdw3000 shared library to the file system.
+.PHONY: install
+install:
+	mkdir -p $(PREFIX)
+	install -m 0755 $(LIB_DIR)/$(LIB_SONAME) $(PREFIX)
+	ln -sf $(LIB_SONAME) $(PREFIX)/$(LIB_SOVERSION)
+	ln -sf $(LIB_SOVERSION) $(PREFIX)/$(LIB_NAME)
+	ldconfig
+
+# Rule to uninstall the libdw3000 shared library from the file system.
+.PHONY: uninstall
+uninstall:
+	rm -f $(PREFIX)/$(LIB_NAME)
+	rm -f $(PREFIX)/$(LIB_SONAME)
+	rm -f $(PREFIX)/$(LIB_SOVERSION)
+
+.PHONY: clean
+clean:
+	$(RM) -r $(OUTPUT_DIR)

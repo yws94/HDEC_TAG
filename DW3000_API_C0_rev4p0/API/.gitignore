@@ -1,0 +1,13 @@
+/API_tests_examples/
+/Debug/
+/ex_00a_devID/
+/ex_01a_simple_tx/
+/ex_01b_tx_sleep/
+/ex_01c_tx_sleep_auto/
+/ex_01d_tx_timed_sleep/
+/ex_02a_simple_rx/
+/ex_02d_rx_sniff/
+/ex_03a_tx_wait_resp/
+/ex_06a_ss_twr_init/
+/ex_06b_ss_twr_resp/
+/ex_07a_ack_data_tx/
