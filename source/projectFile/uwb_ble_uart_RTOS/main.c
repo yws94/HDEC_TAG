@@ -65,7 +65,7 @@ extern dwt_txconfig_t txconfig_options;
 #define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
 #define LEDBUTTON_BUTTON                BSP_BUTTON_0                            /**< Button that will trigger the notification event with the LED Button Service */
 
-#define DEVICE_NAME                     "woosang_test"                         /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "woorim_test"                         /**< Name of device. Will be included in the advertising data. */
 
 #define APP_BLE_OBSERVER_PRIO               3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG                1                                       /**< A tag identifying the SoftDevice BLE configuration. */
@@ -103,13 +103,10 @@ extern dwt_txconfig_t txconfig_options;
 #define OSTIMER_WAIT_FOR_QUEUE             10                                      /**< Number of ticks to wait for the timer queue to be ready */
 
 #define MAX_ANC_NUM                        3                                       /* Maximum number of anchors tag can be connected */
-#define TAG_ID                             0x50                                    /* tag ID range : 0x50 ~ 0x99*/
-#define ANCHOR_ID                          0xAA
+#define TAG_ID                             0x50                                   /* tag ID range : 0x50 ~ 0x99*/
+#define ANCHOR_ID                          0xAA 
 
-/* Check ACK Message sent well  */
-#define ACK_SUCCESS (1)
-#define ACK_FAILED (0)
-
+#define ACK_SUCCESS (1) 
 
 /*DS_TWR Parameters define*/
 #define ALL_MSG_COMMON_LEN 10
@@ -117,7 +114,6 @@ extern dwt_txconfig_t txconfig_options;
 #define FINAL_MSG_POLL_TX_TS_IDX 10
 #define FINAL_MSG_RESP_RX_TS_IDX 14
 #define FINAL_MSG_FINAL_TX_TS_IDX 18
-#define RNG_DELAY_MS 240
 #define TX_ANT_DLY 16385
 #define RX_ANT_DLY 16385
 #define POLL_TX_TO_RESP_RX_DLY_UUS 700
@@ -128,17 +124,13 @@ extern dwt_txconfig_t txconfig_options;
 #define RANGING_DWTIME 7488018                 //30ms
 #define START_TX_DWTIME 2496006                 //10ms
 
-
 extern example_ptr example_pointer;
 extern int unit_test_main(void);
 extern void build_examples(void);
-extern void TAG_ID_SEND(void);
-extern int ACK_MSG_SEND(uint8_t session_id, uint8_t ANC_ID);
+extern void ACK_MSG_SEND(ble_nus_evt_t * p_evt_send);
 extern void test_run_info(unsigned char *data);
 extern int ds_twr_init(void);
-extern int rcm_rx(void);
-extern int ds_twr_initiator(void);
-extern void init_ds(void);
+extern int rcm_rx(void); 
 
 /**@brief Macro to convert the result of ADC conversion in millivolts.
  *
@@ -151,7 +143,7 @@ extern void init_ds(void);
 
 static nrf_saadc_value_t adc_buf[2];
 
-BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                  /**< BLE NUS service instance. Maximum number of total concurrent connections : 3 */
+BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                                   /**< BLE NUS service instance. */
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
 BLE_ADVERTISING_DEF(m_advertising);                                 /**< Advertising module instance. */
 
@@ -169,12 +161,12 @@ static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         
 
 static uint8_t anchor_ID;              /* Buffer for storing anchor number */
 static uint8_t round_ID;                          /* Ranging round ID that can be used for tag' sleeping*/
-static uint8_t sess_check;                       /* Session flag for diagnoising UWB Ranging */
+static uint8_t sess_check; 
 
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3; /**< Maximum length of data (in bytes) : 20byte
                                                                            that can be transmitted to the peer by the Nordic UART service module. */
 
-static char const m_target_periph_name[] = "woosang_test";     /**< Name of the device we try to connect to. This name is searched in the scan report data*/
+static char const m_target_periph_name[] = "woorim_test";     /**< Name of the device we try to connect to. This name is searched in the scan report data*/
 
 static uint16_t m_conn_handle         = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 
@@ -186,13 +178,12 @@ static ble_uuid_t m_adv_uuids[] =                                   /**< Univers
 };
 
 /* DS_TWR_Variables */
-
 static dwt_config_t config = {
     5,               /* Channel number. */
     DWT_PLEN_128,    /* Preamble length. Used in TX only. */
     DWT_PAC8,        /* Preamble acquisition chunk size. Used in RX only. */
-    10,               /* TX preamble code. Used in TX only. */
-    10,               /* RX preamble code. Used in RX only. */
+    9,               /* TX preamble code. Used in TX only. */
+    9,               /* RX preamble code. Used in RX only. */
     1,               /* 0 to use standard 8 symbol SFD, 1 to use non-standard 8 symbol, 2 for non-standard 16 symbol SFD and 3 for 4z 8 symbol SDF type */
     DWT_BR_6M8,      /* Data rate. */
     DWT_PHRMODE_STD, /* PHY header mode. */
@@ -203,28 +194,23 @@ static dwt_config_t config = {
     DWT_PDOA_M0      /* PDOA mode off */
 };
 
-static uint8_t RCM_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'R', 'C', 'M', ANCHOR_ID, 0, 0};
-//static uint8_t RCM_msg[] = {0xC5, 0, 'D', 'E', 'C', 'A', 'R', 'C', 'M'};
+static uint8_t RCM_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'R', 'C', 'M', ANCHOR_ID, 0, 0}; //*******************************//
 static uint8_t tx_poll_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'W', 'A', 'V', 'E', 0x21};
 static uint8_t rx_resp_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'V', 'E', 'W', 'A', 0x10, 0x02, 0, 0};
 static uint8_t tx_final_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'W', 'A', 'V', 'E', 0x23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-/* Length of the common part of the message (up to and including the function code, see NOTE 2 below). */
 
 /* Frame sequence number, incremented after each transmission. */
 static uint8_t frame_seq_nb = 0;
 
-/* Buffer to store received response message.
- * Its size is adjusted to longest frame that this example code is supposed to handle. */
 #define RX_BUF_LEN 20
 static uint8_t rx_buffer[RX_BUF_LEN];
 
-/* Hold copy of status register state here for reference so that it can be examined at a debug breakpoint. */
 static uint32_t status_reg = 0;
-/* Time-stamps of frames transmission/reception, expressed in device time units. */
+
 static uint64_t poll_tx_ts;
 static uint64_t resp_rx_ts;
 static uint64_t final_tx_ts;
-static uint32_t ranging_time;
+static uint32_t ranging_time; //*******************************//
 // DS-TWR Variable End
 
 static TimerHandle_t m_battery_timer;                               /**< Definition of battery timer. */
@@ -234,7 +220,7 @@ static TaskHandle_t m_logger_thread;                                /**< Definit
 #endif
 static TaskHandle_t uwb_thread;                                /**< Definition of Logger thread. */
 
-static TickType_t xLastWakeTime;
+static TickType_t xLastWakeTime; //*******************************//
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data =
@@ -370,40 +356,39 @@ void uart_event_handle(app_uart_evt_t * p_event)
 }
 
 
-///**@snippet [Handling events from the ble_nus_c module] */
-//static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t const * p_ble_nus_c_evt)
-//{
-//        ret_code_t err_code;
+/**@snippet [Handling events from the ble_nus_c module] */
+static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t const * p_ble_nus_c_evt)
+{
+        ret_code_t err_code;
 
-//        switch (p_ble_nus_c_evt->evt_type)
-//        {
-//        case BLE_NUS_C_EVT_DISCOVERY_COMPLETE:
-//               printf("<info> NUS Service discovered on conn_handle 0x%x\n",
-//                             p_ble_nus_c_evt->conn_handle);
+        switch (p_ble_nus_c_evt->evt_type)
+        {
+        case BLE_NUS_C_EVT_DISCOVERY_COMPLETE:
+               printf("<info> NUS Service discovered on conn_handle 0x%x\n",
+                             p_ble_nus_c_evt->conn_handle);
 
-//                err_code = ble_nus_c_handles_assign(p_ble_nus_c, p_ble_nus_c_evt->conn_handle, &p_ble_nus_c_evt->handles);
-//                APP_ERROR_CHECK(err_code);
+                err_code = ble_nus_c_handles_assign(p_ble_nus_c, p_ble_nus_c_evt->conn_handle, &p_ble_nus_c_evt->handles);
+                APP_ERROR_CHECK(err_code);
 
-//                printf("<info> Before enable the tx notification\n");
-//                NRF_LOG_HEXDUMP_DEBUG(p_ble_nus_c, sizeof(ble_nus_c_t));
-//                err_code = ble_nus_c_tx_notif_enable(p_ble_nus_c);
-//                APP_ERROR_CHECK(err_code);
+                printf("<info> Before enable the tx notification\n");
+                NRF_LOG_HEXDUMP_DEBUG(p_ble_nus_c, sizeof(ble_nus_c_t));
+                err_code = ble_nus_c_tx_notif_enable(p_ble_nus_c);
+                APP_ERROR_CHECK(err_code);
 
-//                 printf("<info> Connected to device with Nordic UART Service.\n\n");
-//                break;
+                 printf("<info> Connected to device with Nordic UART Service.\n\n");
+                break;
 
-//        case BLE_NUS_C_EVT_NUS_TX_EVT:
-//                ble_nus_chars_received_uart_print(p_ble_nus_c_evt->p_data, p_ble_nus_c_evt->data_len);
-//                break;
+        case BLE_NUS_C_EVT_NUS_TX_EVT:
+                ble_nus_chars_received_uart_print(p_ble_nus_c_evt->p_data, p_ble_nus_c_evt->data_len);
+                break;
 
-//        case BLE_NUS_C_EVT_DISCONNECTED:
-//                 printf("<info> Conn_handle %d is disconnected\n", p_ble_nus_c_evt->conn_handle);
-//                 NRF_LOG_INFO("<info> Disconnected.\n");
-//                 sess_check = 0;
-//                 advertising_start();
-//                break;
-//        }
-//}
+        case BLE_NUS_C_EVT_DISCONNECTED:
+                 printf("<info> Conn_handle %d is disconnected\n", p_ble_nus_c_evt->conn_handle);
+                 NRF_LOG_INFO("<info> Disconnected.\n");
+                 advertising_start();
+                break;
+        }
+}
 
 /**@brief Function for the GAP initialization.
  *
@@ -440,8 +425,8 @@ void gatt_evt_handler(nrf_ble_gatt_t * p_gatt, nrf_ble_gatt_evt_t const * p_evt)
         uint32_t data_length;
         if ((m_conn_handle == p_evt->conn_handle) && (p_evt->evt_id == NRF_BLE_GATT_EVT_ATT_MTU_UPDATED))
         {
-                m_ble_nus_max_data_len = p_evt->params.att_mtu_effective - OPCODE_LENGTH - HANDLE_LENGTH; // ATT payload
-                 printf("<info> Data len is set to 0x%X(%d)\n", m_ble_nus_max_data_len, m_ble_nus_max_data_len); // 20byte
+                m_ble_nus_max_data_len = p_evt->params.att_mtu_effective - OPCODE_LENGTH - HANDLE_LENGTH;
+                 printf("<info> Data len is set to 0x%X(%d)\n", m_ble_nus_max_data_len, m_ble_nus_max_data_len);
         }
         else if ((m_conn_handle == p_evt->conn_handle) && (p_evt->evt_id == NRF_BLE_GATT_EVT_DATA_LENGTH_UPDATED))
         {
@@ -449,7 +434,7 @@ void gatt_evt_handler(nrf_ble_gatt_t * p_gatt, nrf_ble_gatt_evt_t const * p_evt)
                  printf("<info> gatt_event: Data len is set to 0x%X (%d)\n", data_length, data_length);
                 m_ble_nus_max_data_len = data_length;
         }
-         printf("<info> ATT MTU exchange completed. central 0x%x peripheral 0x%x\n\n",
+         printf("<info> ATT MTU exchange completed. central 0x%x peripheral 0x%x\n",
                       p_gatt->att_mtu_desired_central,
                       p_gatt->att_mtu_desired_periph);
 }
@@ -465,8 +450,6 @@ static void gatt_init(void)
 
         err_code = nrf_ble_gatt_data_length_set(&m_gatt, BLE_CONN_HANDLE_INVALID, NRF_SDH_BLE_GAP_DATA_LENGTH);
         APP_ERROR_CHECK(err_code);
-
-        //TAG_ID_SEND();
 }
 
 /**@brief  Function for initializing the UART module.
@@ -499,57 +482,29 @@ static void uart_init(void)
         APP_ERROR_CHECK(err_code);
 }
 
-/**@brief  Function for sending TAG's indentifier through the UART module. */
-void TAG_ID_SEND(void)
-{
-      ret_code_t send_check;
-   
-      uint8_t id_array[2] = {TAG_ID, 0x01};      
-      do
-        {
-            uint16_t length = 2;
-
-            send_check = ble_nus_data_send(&m_nus, id_array, &length, m_conn_handle);
-            if ((send_check != NRF_ERROR_INVALID_STATE) &&
-                (send_check != NRF_ERROR_RESOURCES) &&
-                (send_check != NRF_ERROR_NOT_FOUND))
-            {
-                APP_ERROR_CHECK(send_check);
-            }
-        } while (send_check == NRF_ERROR_RESOURCES);
-
-      APP_ERROR_CHECK(send_check);
-      printf("TAG ID sent well!!\n\n");
-}
 
 /**@brief  Function for sending ACK message through the UART module. */
-int ACK_MSG_SEND(uint8_t session_id, uint8_t anchor)
+void ACK_MSG_SEND(ble_nus_evt_t * p_evt_send)
 {
         ret_code_t send_check;
 
-        uint8_t ack_array[4] = {TAG_ID, anchor, session_id, 0xAC}; 
+        static uint8_t data_array[3] = {TAG_ID, 0x01, 0xAC};
 
+        printf("<Session> Send ACK message. \n\n");                
         do
           {
-              uint16_t length = 4;
-              send_check = ble_nus_data_send(&m_nus, ack_array, &length, m_conn_handle);
+              uint16_t length = 3;
+              send_check = ble_nus_data_send(&m_nus, data_array, &length, m_conn_handle);
               if ((send_check != NRF_ERROR_INVALID_STATE) &&
                   (send_check != NRF_ERROR_RESOURCES) &&
                   (send_check != NRF_ERROR_NOT_FOUND))
               {
                   APP_ERROR_CHECK(send_check);
               }
-              //else
-              //{
-              //    printf("<Error> Sending ACK failed. \n\n");
-              //    return ACK_FAILED;
-              //}
           } while (send_check == NRF_ERROR_RESOURCES);
 
         APP_ERROR_CHECK(send_check);
-        printf("<info> Sent ACK message Well! \n\n");
-
-        return ACK_SUCCESS;
+        printf("<Session> Finished sending ACK message. \n\n");
 }
 
 /**@brief Function for handling the data from the Nordic UART Service.
@@ -564,93 +519,40 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
 {
     if (p_evt->type == BLE_NUS_EVT_RX_DATA)
     {
-        uint16_t r_data[p_evt->params.rx_data.length];
-        uint8_t ack;
+        uint8_t r_data[p_evt->params.rx_data.length];
 
-        printf("Received data from BLE NUS. Writing data on UART.\n\n\n");
+        NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
         NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
 
         for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++)
         {
            r_data[i]=p_evt->params.rx_data.p_data[i];
+          
         }
-
-        uint8_t MSG_TYPE = r_data[2];
-
-        switch(MSG_TYPE)
-        {
-            case 0x01: 
-              if(r_data[0] == TAG_ID)
-              { 
-                 printf("@@Check Session can be established...@@\n\n");
-                 anchor_ID = r_data[1];
-                 ack = ACK_MSG_SEND(1, anchor_ID);
-                 //if (ack == ACK_SUCCESS)
-                 //{
-                   round_ID = r_data[3];
-                   sess_check = 1;
-                   printf("Session Established. Anchor ID : %x, Round : %d\n\n", anchor_ID, round_ID);
-                 //}
-              }
-              else
-              {
-                 printf("<0x01>TAG Num Invalid!\n\n");
-              }
-               break;
         
-            case 0x02:
-              if(r_data[0] == TAG_ID)
-              {
-                 if((r_data[3] != round_ID) && (r_data[3] != 0) )
-                 {
-                    printf("Session Round ID Updated!!\n\n");
-                    sess_check = 0;
-                    anchor_ID = r_data[1];
-                    ack = ACK_MSG_SEND(2, anchor_ID);
-                    if (ack == ACK_SUCCESS)
-                    {
-                      round_ID = r_data[3];
-                      sess_check = 1;
-                      printf("Session Updated. Anchor ID : %x, Round : %d\n\n", anchor_ID, round_ID);
-                    }
-                 }
-                 else if(r_data[3] == 0){
-                    printf("<Out of Range> Session will be discarded!!\n\n");
-                    sd_ble_gap_disconnect(m_conn_handle,BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-                    bsp_board_led_off(CONNECTED_LED);
-                    m_conn_handle = BLE_CONN_HANDLE_INVALID;
-                    sess_check = 0;
-                    round_ID = 0;
-                    advertising_start();
-                 }
-                 else 
-                 {
-                    printf("<Unknown Error>\n\n");
-                 }
-              }
-              else
-              {
-                printf("<0x02>TAG Num Invalid!!\n\n");
-              }
-               break;
+        switch(r_data[1]){
+        
+        case 0x01: 
+           NRF_LOG_INFO("Session Established");
+           anchor_ID=r_data[0];
+           round_ID=r_data[2];
+           sess_check = 1;
+           ACK_MSG_SEND(p_evt);
+           printf("Anchor ID : %x, Round : %d\n\n",anchor_ID,round_ID);
+           break;
+        
+        case 0x02:
+           printf("Session Discarded/Management\n\n"); 
+           break; 
 
-            case 0x03:
-              if(r_data[0] == TAG_ID)
-              {
-                 printf("@@@ Warning Alarm : %d\n\n", r_data[3]);
-              }
-              else
-              {
-                 printf("<0x03>TAG Num Invalid!!\n\n");
-              }
-               break;   
+        case 0x03:
+           printf("RCM data\n\n");
+           break;   
         }
-    }
-    else if(p_evt->type == BLE_NUS_EVT_COMM_STARTED)
-    {
-        TAG_ID_SEND();
     }
 }
+
+
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -684,11 +586,9 @@ static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
 {
     uint32_t err_code;
 
-    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED) //!< Negotiation procedure failed.
+    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
     {
-        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE); /* m_conn_handle = BLE_CONN_HANDLE_INVALID, Connection Interval Unacceptable. */
-        sess_check = 0;
-        round_ID = 0;
+        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
         APP_ERROR_CHECK(err_code);
     }
 }
@@ -714,7 +614,7 @@ static void conn_params_init(void)
     memset(&cp_init, 0, sizeof(cp_init));
 
     cp_init.p_conn_params                  = NULL;
-    cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY; // 
+    cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
     cp_init.next_conn_params_update_delay  = NEXT_CONN_PARAMS_UPDATE_DELAY;
     cp_init.max_conn_params_update_count   = MAX_CONN_PARAMS_UPDATE_COUNT;
     cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
@@ -786,18 +686,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            printf("Connected\n\n");
+            NRF_LOG_INFO("Connected");
             bsp_board_led_on(CONNECTED_LED);
             bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
-            printf("Disconnected\n\n");
+            NRF_LOG_INFO("Disconnected");
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-            sess_check = 0;
-            round_ID = 0;
             advertising_start();
             break;
 
@@ -833,8 +731,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_DEBUG("GATT Client Timeout.");
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-            sess_check = 0;
-            round_ID = 0;
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -843,8 +739,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_DEBUG("GATT Server Timeout.");
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-            sess_check = 0;
-            round_ID = 0;
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -856,20 +750,20 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
 
 
-///**@brief Function for initializing the Nordic UART Service (NUS) client. */
-//static void nus_c_init(void)
-//{
-//        ret_code_t err_code;
-//        ble_nus_c_init_t init;
+/**@brief Function for initializing the Nordic UART Service (NUS) client. */
+static void nus_c_init(void)
+{
+        ret_code_t err_code;
+        ble_nus_c_init_t init;
 
-//        init.evt_handler = ble_nus_c_evt_handler;
+        init.evt_handler = ble_nus_c_evt_handler;
 
-//        for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
-//        {
-//                err_code = ble_nus_c_init(&m_ble_nus_c[i], &init);
-//                APP_ERROR_CHECK(err_code);
-//        }
-//}
+        for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+        {
+                err_code = ble_nus_c_init(&m_ble_nus_c[i], &init);
+                APP_ERROR_CHECK(err_code);
+        }
+}
 
 /**@brief Function for initializing the BLE stack.
  *
@@ -912,8 +806,6 @@ static void bsp_event_handler(bsp_event_t event)
         case BSP_EVENT_DISCONNECT:
                 err_code = sd_ble_gap_disconnect(m_conn_handle,
                                                  BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-                sess_check = 0;
-                round_ID = 0;
                 if (err_code != NRF_ERROR_INVALID_STATE)
                 {
                         APP_ERROR_CHECK(err_code);
@@ -979,9 +871,9 @@ static void advertising_init(void)
     // Set advertising parameters.
     memset(&adv_params, 0, sizeof(adv_params));
 
-    adv_params.primary_phy     = BLE_GAP_PHY_1MBPS; // should be 2Mbps?
+    adv_params.primary_phy     = BLE_GAP_PHY_1MBPS;
     adv_params.duration        = APP_ADV_DURATION;
-    adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED; // advertising types ** need closer looking at **
+    adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
     adv_params.p_peer_addr     = NULL;
     adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
     adv_params.interval        = APP_ADV_INTERVAL;
@@ -1042,15 +934,10 @@ static void clock_init(void)
         APP_ERROR_CHECK(err_code);
 }
 
-//static void HIHIHI(void)
-//{
-//    xTaskNotify(uwb_thread, (1<<0), eSetBits);
-//}
-
-///**@brief Function for the Timer initialization.
-// *
-// * @details Initializes the timer module. This creates and starts application timers.
-// */
+/**@brief Function for the Timer initialization.
+ *
+ * @details Initializes the timer module. This creates and starts application timers.
+ */
 //static void timers_init(void)
 //{
 //        // Initialize timer module.
@@ -1101,7 +988,8 @@ int main(void)
                 APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
         }
 
-        ble_stack_init();    // Configure and initialize the BLE stack.
+        /* Configure and initialize the BLE stack. */
+        ble_stack_init();
 
         /* Initialize modules. */
         buttons_leds_init(&erase_bonds);
@@ -1116,14 +1004,14 @@ int main(void)
         dw_irq_init();
         nrf_drv_gpiote_in_event_disable(DW3000_IRQn_Pin);
         nrf_delay_ms(2);
- 
-        /* UWB Start */
-      
+
+        /* UWB Tast start */
+
         if (pdPASS != xTaskCreate(ds_twr_init, "UWB", 2*1024, NULL, 1, &uwb_thread))
         {
                 APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
         }
-  
+   
 
         /* Create a FreeRTOS task for the BLE stack. */
         nrf_sdh_freertos_init(advertising_start, &erase_bonds);
@@ -1136,16 +1024,13 @@ int main(void)
         }
 }
 
-
-/**@brief A function which starts UWB DS TWR.
- * @note UWB Session shoud be started when the RCM message is received.
- */
 int ds_twr_init(void)
 {
     port_set_dw_ic_spi_fastrate();
-    reset_DWIC();
-    Sleep(2); 
 
+    reset_DWIC(); 
+
+    Sleep(2); 
     while (!dwt_checkidlerc()) 
     { };
 
@@ -1155,98 +1040,99 @@ int ds_twr_init(void)
         { };
     }
 
-    if(dwt_configure(&config)) /* if the dwt_configure returns DWT_ERROR either the PLL or RX calibration has failed the host should reset the device */
+    if(dwt_configure(&config)) 
     {
         while (1)
         { };
     }
-    
+
     dwt_configuretxrf(&txconfig_options);
 
     dwt_setrxantennadelay(RX_ANT_DLY);
     dwt_settxantennadelay(TX_ANT_DLY);
 
+    //dwt_setrxaftertxdelay(POLL_TX_TO_RESP_RX_DLY_UUS);
+    //dwt_setrxtimeout(RESP_RX_TIMEOUT_UUS);
+    //dwt_setpreambledetecttimeout(PRE_TIMEOUT);
+
     dwt_setleds(DWT_LEDS_ENABLE | DWT_LEDS_INIT_BLINK);
 
     while (1)
     {
-     //printf("Session Check: %d\n\n",sess_check);
-     if(sess_check == 1)
-     {
-        //dwt_setrxaftertxdelay(0);
-        //dwt_setrxtimeout(0);
-        //dwt_setpreambledetecttimeout(0);
-        
+      if(sess_check == 1)
+      {
         uint32_t rcm_rx_time;
 
-        rcm_rx_time = rcm_rx();
+        do{
+           rcm_rx_time=rcm_rx();
+        }while((rcm_rx_time == 0) || (rcm_rx_time == 1));
 
-        //dwt_setrxaftertxdelay(POLL_TX_TO_RESP_RX_DLY_UUS);
-        //dwt_setrxtimeout(RESP_RX_TIMEOUT_UUS);
-        //dwt_setpreambledetecttimeout(PRE_TIMEOUT);
-      
-        printf("This is DS_TWR_INIT, Round ID : %d\n\n",round_ID);
         dwt_setreferencetrxtime(rcm_rx_time);
 
-        ranging_time = (RANGING_DWTIME * round_ID) + START_TX_DWTIME - TX_ANT_DLY;
+        ranging_time = RANGING_DWTIME * round_ID + START_TX_DWTIME - TX_ANT_DLY;
 
-        dwt_setdelayedtrxtime(ranging_time); // Delay until ranging round time from RCM message.
-
-        /* Start transmission, Block delay : 240ms */
-        tx_poll_msg[ALL_MSG_SN_IDX] = 0;
+        dwt_setdelayedtrxtime(ranging_time);
+        
+        tx_poll_msg[ALL_MSG_SN_IDX] = frame_seq_nb;
         dwt_writetxdata(sizeof(tx_poll_msg), tx_poll_msg, 0); /* Zero offset in TX buffer. */
         dwt_writetxfctrl(sizeof(tx_poll_msg)+FCS_LEN, 0, 1); /* Zero offset in TX buffer, ranging. */
-        
-        //nrf_gpio_pin_toggle(LED_4);
+
         dwt_starttx(DWT_START_TX_DLY_REF | DWT_RESPONSE_EXPECTED);
 
         while (!((status_reg = dwt_read32bitreg(SYS_STATUS_ID)) & (SYS_STATUS_RXFCG_BIT_MASK | SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR)))
-        {};
+        { };	
 
         frame_seq_nb++;
-
-        printf("DS TWR initiator start TX Check \n\n");	
 
         if (status_reg & SYS_STATUS_RXFCG_BIT_MASK)
         {
             uint32_t frame_len;
-            printf("DS TWR initiator start TX Complete\n\n");
 
+            /* Clear good RX frame event and TX frame sent in the DW IC status register. */
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_RXFCG_BIT_MASK | SYS_STATUS_TXFRS_BIT_MASK);
 
+            /* A frame has been received, read it into the local buffer. */
             frame_len = dwt_read32bitreg(RX_FINFO_ID) & FRAME_LEN_MAX_EX;
             if (frame_len <= RX_BUF_LEN)
             {
                 dwt_readrxdata(rx_buffer, frame_len, 0);
             }
-            printf("HIHIHI\n\n");
-            printf("frame_len: %d \n\n", frame_len);
+
+            /* Check that the frame is the expected response from the companion "DS TWR responder" example.
+             * As the sequence number field of the frame is not relevant, it is cleared to simplify the validation of the frame. */
+            rx_buffer[ALL_MSG_SN_IDX] = 0;
             if (memcmp(rx_buffer, rx_resp_msg, ALL_MSG_COMMON_LEN) == 0)
             {
-                printf("Receive Resp Message Success\n\n");
                 uint32_t final_tx_time;
                 int ret;
 
+                /* Retrieve poll transmission and response reception timestamp. */
                 poll_tx_ts = get_tx_timestamp_u64();
                 resp_rx_ts = get_rx_timestamp_u64();
 
+                /* Compute final message transmission time. See NOTE 11 below. */
                 final_tx_time = (resp_rx_ts + (RESP_RX_TO_FINAL_TX_DLY_UUS * UUS_TO_DWT_TIME)) >> 8;
                 dwt_setdelayedtrxtime(final_tx_time);
 
+                /* Final TX timestamp is the transmission time we programmed plus the TX antenna delay. */
                 final_tx_ts = (((uint64_t)(final_tx_time & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY;
 
+                /* Write all timestamps in the final message. See NOTE 12 below. */
                 final_msg_set_ts(&tx_final_msg[FINAL_MSG_POLL_TX_TS_IDX], poll_tx_ts);
                 final_msg_set_ts(&tx_final_msg[FINAL_MSG_RESP_RX_TS_IDX], resp_rx_ts);
                 final_msg_set_ts(&tx_final_msg[FINAL_MSG_FINAL_TX_TS_IDX], final_tx_ts);
 
-                tx_final_msg[ALL_MSG_SN_IDX] = 0;
+                /* Write and send final message. See NOTE 9 below. */
+                tx_final_msg[ALL_MSG_SN_IDX] = frame_seq_nb;
                 dwt_writetxdata(sizeof(tx_final_msg), tx_final_msg, 0); /* Zero offset in TX buffer. */
                 dwt_writetxfctrl(sizeof(tx_final_msg)+FCS_LEN, 0, 1); /* Zero offset in TX buffer, ranging bit set. */
 
                 ret = dwt_starttx(DWT_START_TX_DELAYED);
 
+                /* If dwt_starttx() returns an error, abandon this ranging exchange and proceed to the next one. See NOTE 13 below. */
                 if (ret == DWT_SUCCESS)
                 {
+                    /* Poll DW IC until TX frame sent event set. See NOTE 10 below. */
                     while (!(dwt_read32bitreg(SYS_STATUS_ID) & SYS_STATUS_TXFRS_BIT_MASK))
                     { };
 
@@ -1254,30 +1140,26 @@ int ds_twr_init(void)
 
                     /* Clear TXFRS event. */
                     dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS_BIT_MASK);
+                             
+                    /* Increment frame sequence number after transmission of the final message (modulo 256). */
                     frame_seq_nb++;
-
                 }
             }
-         }
+        }
         else
         {
             /* Clear RX error/timeout events in the DW IC status register. */
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR | SYS_STATUS_TXFRS_BIT_MASK);
         }
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(230));
-        //Sleep(0);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(240));
      }
-   }
+  }
 }
 
-
-/**@brief A function which receives RCM message from UWB Anchor.
- * @note RX event is occured as soon as BLE sent ACK message.
- */
 int rcm_rx(void)
 {
       printf("@@@@@@@@@@@rcm RX start@@@@@@@@@@@\n\n");
-
+      
       uint32_t rcm_rx_ts;
 
       memset(rx_buffer,0,sizeof(rx_buffer));
@@ -1285,17 +1167,12 @@ int rcm_rx(void)
       dwt_rxenable(DWT_START_RX_IMMEDIATE);
 
       while (!((status_reg = dwt_read32bitreg(SYS_STATUS_ID)) & (SYS_STATUS_RXFCG_BIT_MASK | SYS_STATUS_ALL_RX_ERR)))
-      {
-        //printf("rcm_rx failed, round ID : %d Session: %d\n\n",round_ID,sess_check);
-      };
-
-      xLastWakeTime = xTaskGetTickCount();
+      {};
       
         if (status_reg & SYS_STATUS_RXFCG_BIT_MASK)
         {
 
           uint16_t frame_len;
-
 
           /* A frame has been received, read it into the local buffer. */
           frame_len = dwt_read32bitreg(RX_FINFO_ID) & RXFLEN_MASK;
@@ -1306,7 +1183,13 @@ int rcm_rx(void)
               rx_buffer[ALL_MSG_SN_IDX] = 0;
               if (memcmp(rx_buffer, RCM_msg, 8) == 0)
               {                  
-                  rcm_rx_ts = dwt_readrxtimestamphi32(); /* Retrieve RCM reception timestamp.to fuction parameter */
+                  rcm_rx_ts = dwt_readrxtimestamphi32(); /* Retrieve RCM reception timestamp to fuction parameter */
+                  
+                  xLastWakeTime = xTaskGetTickCount();
+              }
+              else
+              {
+                  rcm_rx_ts = 0;
               }
 
               /* Clear good RX frame event in the DW IC status register. */
