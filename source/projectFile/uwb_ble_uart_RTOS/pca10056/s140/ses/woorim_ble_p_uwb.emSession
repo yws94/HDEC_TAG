@@ -3,6 +3,12 @@
  <Bookmarks/>
  <Breakpoints groups="Breakpoints" active_group="Breakpoints">
   <BreakpointListItem trigger="Execute" line="0" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="0x339bc" group="Breakpoints" type="Breakpoint" state="3" filename="../ses" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="591" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="696" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="725" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="732" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="740" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="807" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
   <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
@@ -27,6 +33,7 @@
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Application"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Board Support"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Board Support;Modified BLE_Services"/>
+  <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Modified nRF_Libraries"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_Drivers"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_Libraries"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_Log"/>
@@ -40,6 +47,7 @@
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Source;examples;shared_data"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Source;platform"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Third Parties"/>
+  <SourceCodeControlLogin password="F9BB6682F5D56822" user=""/>
  </Project>
  <Register1>
   <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/MSP;CPU/PSP;CPU/PRIMASK;CPU/BASEPRI;CPU/FAULTMASK;CPU/CONTROL;CPU/internal" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context" name="woorim_ble_p_uwb" decimalNodes="" octalNodes="" unsignedNodes=""/>
@@ -76,8 +84,13 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="1204" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="1163" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="6" y="12516" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="12502" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="53" y="67" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="26" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="41" y="64" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="41" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="43" y="53" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../../project_peripheral/source/projectFile/modified_components/softdevice/common/nrf_sdh_freertos.c" selected="0" top="32" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="297" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="deca_spi.c" selected="0" top="274" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="281" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/hal/nrf_rtc.h" selected="0" top="258" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="439" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../modified_components/softdevice/s132/headers/ble_gap.h" selected="0" top="416" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="91" y="344" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_util.h" selected="0" top="316" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="woorim_ble_p_uwb" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf52840.s&#xa;&#xa;C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf_common.s&#xa;&#xa;C:/Users/yws/Desktop/project_peripheral/source/projectFile/uwb_ble_uart_RTOS/main.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="woorim_ble_p_uwb" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf52840.s&#xa;&#xa;C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf_common.s&#xa;&#xa;C:/Users/yws/Desktop/project_peripheral/source/projectFile/uwb_ble_uart_RTOS/main.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

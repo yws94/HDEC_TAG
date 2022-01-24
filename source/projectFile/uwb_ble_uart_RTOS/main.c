@@ -76,8 +76,8 @@ extern dwt_txconfig_t txconfig_options;
 
 #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(500, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.5 seconds).  */
 #define MAX_CONN_INTERVAL               MSEC_TO_UNITS(1000, UNIT_1_25_MS)       /**< Maximum acceptable connection interval (1 second). */
-#define SLAVE_LATENCY                   0                                       /**< Slave latency. */
-#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(4000, UNIT_10_MS)         /**< Connection supervisory timeout (4 seconds). */
+#define SLAVE_LATENCY                   1                                       /**< Slave latency. */
+#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(6000, UNIT_10_MS)         /**< Connection supervisory timeout (4 seconds). */
 
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                       /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
@@ -103,7 +103,7 @@ extern dwt_txconfig_t txconfig_options;
 #define OSTIMER_WAIT_FOR_QUEUE             10                                      /**< Number of ticks to wait for the timer queue to be ready */
 
 #define MAX_ANC_NUM                        3                                       /* Maximum number of anchors tag can be connected */
-#define TAG_ID                             0x50                                   /* tag ID range : 0x50 ~ 0x99*/
+#define TAG_ID                             0x54                                   /* tag ID range : 0x50 ~ 0x99*/
 #define ANCHOR_ID                          0xAA 
 
 #define ACK_SUCCESS (1) 
@@ -356,39 +356,39 @@ void uart_event_handle(app_uart_evt_t * p_event)
 }
 
 
-/**@snippet [Handling events from the ble_nus_c module] */
-static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t const * p_ble_nus_c_evt)
-{
-        ret_code_t err_code;
+///**@snippet [Handling events from the ble_nus_c module] */
+//static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t const * p_ble_nus_c_evt)
+//{
+//        ret_code_t err_code;
 
-        switch (p_ble_nus_c_evt->evt_type)
-        {
-        case BLE_NUS_C_EVT_DISCOVERY_COMPLETE:
-               printf("<info> NUS Service discovered on conn_handle 0x%x\n",
-                             p_ble_nus_c_evt->conn_handle);
+//        switch (p_ble_nus_c_evt->evt_type)
+//        {
+//        case BLE_NUS_C_EVT_DISCOVERY_COMPLETE:
+//               printf("<info> NUS Service discovered on conn_handle 0x%x\n",
+//                             p_ble_nus_c_evt->conn_handle);
 
-                err_code = ble_nus_c_handles_assign(p_ble_nus_c, p_ble_nus_c_evt->conn_handle, &p_ble_nus_c_evt->handles);
-                APP_ERROR_CHECK(err_code);
+//                err_code = ble_nus_c_handles_assign(p_ble_nus_c, p_ble_nus_c_evt->conn_handle, &p_ble_nus_c_evt->handles);
+//                APP_ERROR_CHECK(err_code);
 
-                printf("<info> Before enable the tx notification\n");
-                NRF_LOG_HEXDUMP_DEBUG(p_ble_nus_c, sizeof(ble_nus_c_t));
-                err_code = ble_nus_c_tx_notif_enable(p_ble_nus_c);
-                APP_ERROR_CHECK(err_code);
+//                printf("<info> Before enable the tx notification\n");
+//                NRF_LOG_HEXDUMP_DEBUG(p_ble_nus_c, sizeof(ble_nus_c_t));
+//                err_code = ble_nus_c_tx_notif_enable(p_ble_nus_c);
+//                APP_ERROR_CHECK(err_code);
 
-                 printf("<info> Connected to device with Nordic UART Service.\n\n");
-                break;
+//                 printf("<info> Connected to device with Nordic UART Service.\n\n");
+//                break;
 
-        case BLE_NUS_C_EVT_NUS_TX_EVT:
-                ble_nus_chars_received_uart_print(p_ble_nus_c_evt->p_data, p_ble_nus_c_evt->data_len);
-                break;
+//        case BLE_NUS_C_EVT_NUS_TX_EVT:
+//                ble_nus_chars_received_uart_print(p_ble_nus_c_evt->p_data, p_ble_nus_c_evt->data_len);
+//                break;
 
-        case BLE_NUS_C_EVT_DISCONNECTED:
-                 printf("<info> Conn_handle %d is disconnected\n", p_ble_nus_c_evt->conn_handle);
-                 NRF_LOG_INFO("<info> Disconnected.\n");
-                 advertising_start();
-                break;
-        }
-}
+//        case BLE_NUS_C_EVT_DISCONNECTED:
+//                 printf("<info> Conn_handle %d is disconnected\n", p_ble_nus_c_evt->conn_handle);
+//                 NRF_LOG_INFO("<info> Disconnected.\n");
+//                 advertising_start();
+//                break;
+//        }
+//}
 
 /**@brief Function for the GAP initialization.
  *
@@ -538,7 +538,7 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
            round_ID=r_data[2];
            sess_check = 1;
            ACK_MSG_SEND(p_evt);
-           printf("Anchor ID : %x, Round : %d\n\n",anchor_ID,round_ID);
+           printf("Anchor ID : %x, Round : %d\n\n", anchor_ID, round_ID);
            break;
         
         case 0x02:
@@ -750,20 +750,20 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
 
 
-/**@brief Function for initializing the Nordic UART Service (NUS) client. */
-static void nus_c_init(void)
-{
-        ret_code_t err_code;
-        ble_nus_c_init_t init;
+///**@brief Function for initializing the Nordic UART Service (NUS) client. */
+//static void nus_c_init(void)
+//{
+//        ret_code_t err_code;
+//        ble_nus_c_init_t init;
 
-        init.evt_handler = ble_nus_c_evt_handler;
+//        init.evt_handler = ble_nus_c_evt_handler;
 
-        for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
-        {
-                err_code = ble_nus_c_init(&m_ble_nus_c[i], &init);
-                APP_ERROR_CHECK(err_code);
-        }
-}
+//        for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+//        {
+//                err_code = ble_nus_c_init(&m_ble_nus_c[i], &init);
+//                APP_ERROR_CHECK(err_code);
+//        }
+//}
 
 /**@brief Function for initializing the BLE stack.
  *
@@ -1006,12 +1006,10 @@ int main(void)
         nrf_delay_ms(2);
 
         /* UWB Tast start */
-
         if (pdPASS != xTaskCreate(ds_twr_init, "UWB", 2*1024, NULL, 1, &uwb_thread))
         {
                 APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
         }
-   
 
         /* Create a FreeRTOS task for the BLE stack. */
         nrf_sdh_freertos_init(advertising_start, &erase_bonds);
