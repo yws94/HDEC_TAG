@@ -3,12 +3,10 @@
  <Bookmarks/>
  <Breakpoints groups="Breakpoints" active_group="Breakpoints">
   <BreakpointListItem trigger="Execute" line="0" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="0x339bc" group="Breakpoints" type="Breakpoint" state="3" filename="../ses" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="591" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="696" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="725" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="732" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="740" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="807" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="618" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="764" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="774" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <BreakpointListItem trigger="" line="843" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
   <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
@@ -34,9 +32,11 @@
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Board Support"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Board Support;Modified BLE_Services"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Modified nRF_Libraries"/>
+  <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_BLE"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_Drivers"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_Libraries"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_Log"/>
+  <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;nRF_Segger_RTT"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Source"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Source;decadriver"/>
   <ProjectSessionItem path="woorim_ble_p_uwb;woorim_ble_p_uwb;Source;examples"/>
@@ -84,13 +84,12 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="53" y="67" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="26" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="41" y="64" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="41" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="43" y="53" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../../project_peripheral/source/projectFile/modified_components/softdevice/common/nrf_sdh_freertos.c" selected="0" top="32" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="297" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="deca_spi.c" selected="0" top="274" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="281" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/hal/nrf_rtc.h" selected="0" top="258" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="439" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../modified_components/softdevice/s132/headers/ble_gap.h" selected="0" top="416" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="91" y="344" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_util.h" selected="0" top="316" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="3" y="998" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="986" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="5" y="111" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../modified_components/softdevice/s132/headers/ble_gap.h" selected="0" top="94" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="606" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/drivers/src/nrfx_spim.c" selected="0" top="583" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="507" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../integration/nrfx/legacy/nrf_drv_spi.h" selected="0" top="484" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="297" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="deca_spi.c" selected="0" top="274" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="394" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../../project_peripheral/DW3000_API_C0_rev4p0/API/Src/decadriver/deca_device.c" selected="0" top="350" codecName=""/>
  </Files>
- <ARMCrossStudioWindow activeProject="woorim_ble_p_uwb" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf52840.s&#xa;&#xa;C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf_common.s&#xa;&#xa;C:/Users/yws/Desktop/project_peripheral/source/projectFile/uwb_ble_uart_RTOS/main.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
+ <ARMCrossStudioWindow activeProject="woorim_ble_p_uwb" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf52840.s&#xa;&#xa;C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf_common.s&#xa;&#xa;C:/Users/yws/Desktop/project_peripheral/source/projectFile/uwb_ble_uart_RTOS/main.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

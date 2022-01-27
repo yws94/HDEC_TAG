@@ -103,10 +103,8 @@ extern dwt_txconfig_t txconfig_options;
 #define OSTIMER_WAIT_FOR_QUEUE             10                                      /**< Number of ticks to wait for the timer queue to be ready */
 
 #define MAX_ANC_NUM                        3                                       /* Maximum number of anchors tag can be connected */
-#define TAG_ID                             0x54                                   /* tag ID range : 0x50 ~ 0x99*/
+#define TAG_ID                             0x60                                   /* tag ID range : 0x50 ~ 0x99*/
 #define ANCHOR_ID                          0xAA 
-
-#define ACK_SUCCESS (1) 
 
 /*DS_TWR Parameters define*/
 #define ALL_MSG_COMMON_LEN 10
@@ -127,7 +125,8 @@ extern dwt_txconfig_t txconfig_options;
 extern example_ptr example_pointer;
 extern int unit_test_main(void);
 extern void build_examples(void);
-extern void ACK_MSG_SEND(ble_nus_evt_t * p_evt_send);
+extern void ACK_SESS_SEND();
+extern void ACK_UP_SEND();
 extern void test_run_info(unsigned char *data);
 extern int ds_twr_init(void);
 extern int rcm_rx(void); 
@@ -355,41 +354,6 @@ void uart_event_handle(app_uart_evt_t * p_event)
         }
 }
 
-
-///**@snippet [Handling events from the ble_nus_c module] */
-//static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t const * p_ble_nus_c_evt)
-//{
-//        ret_code_t err_code;
-
-//        switch (p_ble_nus_c_evt->evt_type)
-//        {
-//        case BLE_NUS_C_EVT_DISCOVERY_COMPLETE:
-//               printf("<info> NUS Service discovered on conn_handle 0x%x\n",
-//                             p_ble_nus_c_evt->conn_handle);
-
-//                err_code = ble_nus_c_handles_assign(p_ble_nus_c, p_ble_nus_c_evt->conn_handle, &p_ble_nus_c_evt->handles);
-//                APP_ERROR_CHECK(err_code);
-
-//                printf("<info> Before enable the tx notification\n");
-//                NRF_LOG_HEXDUMP_DEBUG(p_ble_nus_c, sizeof(ble_nus_c_t));
-//                err_code = ble_nus_c_tx_notif_enable(p_ble_nus_c);
-//                APP_ERROR_CHECK(err_code);
-
-//                 printf("<info> Connected to device with Nordic UART Service.\n\n");
-//                break;
-
-//        case BLE_NUS_C_EVT_NUS_TX_EVT:
-//                ble_nus_chars_received_uart_print(p_ble_nus_c_evt->p_data, p_ble_nus_c_evt->data_len);
-//                break;
-
-//        case BLE_NUS_C_EVT_DISCONNECTED:
-//                 printf("<info> Conn_handle %d is disconnected\n", p_ble_nus_c_evt->conn_handle);
-//                 NRF_LOG_INFO("<info> Disconnected.\n");
-//                 advertising_start();
-//                break;
-//        }
-//}
-
 /**@brief Function for the GAP initialization.
  *
  * @details This function sets up all the necessary GAP (Generic Access Profile) parameters of the
@@ -484,16 +448,16 @@ static void uart_init(void)
 
 
 /**@brief  Function for sending ACK message through the UART module. */
-void ACK_MSG_SEND(ble_nus_evt_t * p_evt_send)
+void ACK_SESS_SEND()
 {
         ret_code_t send_check;
 
-        static uint8_t data_array[3] = {TAG_ID, 0x01, 0xAC};
+        uint8_t data_array[4] = {0x01, TAG_ID, 0xAC, round_ID};
 
         printf("<Session> Send ACK message. \n\n");                
         do
           {
-              uint16_t length = 3;
+              uint16_t length = 4;
               send_check = ble_nus_data_send(&m_nus, data_array, &length, m_conn_handle);
               if ((send_check != NRF_ERROR_INVALID_STATE) &&
                   (send_check != NRF_ERROR_RESOURCES) &&
@@ -505,6 +469,30 @@ void ACK_MSG_SEND(ble_nus_evt_t * p_evt_send)
 
         APP_ERROR_CHECK(send_check);
         printf("<Session> Finished sending ACK message. \n\n");
+}
+
+/**@brief  Function for sending ACK message through the UART module. */
+void ACK_UP_SEND()
+{
+        ret_code_t send_check;
+
+        uint8_t data_array[5] = {0x02, anchor_ID, TAG_ID, 0xAC, round_ID};
+
+        printf("<Update> Send ACK message. \n\n");                
+        do
+          {
+              uint16_t length = 5;
+              send_check = ble_nus_data_send(&m_nus, data_array, &length, m_conn_handle);
+              if ((send_check != NRF_ERROR_INVALID_STATE) &&
+                  (send_check != NRF_ERROR_RESOURCES) &&
+                  (send_check != NRF_ERROR_NOT_FOUND))
+              {
+                  APP_ERROR_CHECK(send_check);
+              }
+          } while (send_check == NRF_ERROR_RESOURCES);
+
+        APP_ERROR_CHECK(send_check);
+        printf("<Update> Finished sending ACK message. \n\n");
 }
 
 /**@brief Function for handling the data from the Nordic UART Service.
@@ -530,26 +518,63 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
           
         }
         
-        switch(r_data[1]){
+        switch(r_data[0]){
         
         case 0x01: 
-           NRF_LOG_INFO("Session Established");
-           anchor_ID=r_data[0];
+           printf("Session Established\n\n");
+           anchor_ID=r_data[1];
            round_ID=r_data[2];
            sess_check = 1;
-           ACK_MSG_SEND(p_evt);
+           ACK_SESS_SEND();
            printf("Anchor ID : %x, Round : %d\n\n", anchor_ID, round_ID);
            break;
         
         case 0x02:
-           printf("Session Discarded/Management\n\n"); 
+           if(r_data[1] == TAG_ID)
+           {
+              if ((r_data[3] != round_ID) && (r_data[3] != 0))
+              {
+                printf("Session Updated!!\n\n");
+                round_ID = 0;
+                sess_check = 0;
+                anchor_ID = r_data[2];
+                ACK_UP_SEND();
+                round_ID = r_data[3];
+                sess_check = 1;
+                printf("Session Updated well. Anchor ID : %x, Round : %d\n\n", anchor_ID, round_ID);
+              }
+
+              else if(r_data[3] == 0)
+              {
+                printf("Session will be discarded!!\n\n");
+                sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+                //bsp_board_led_off(CONNECTED_LED);
+                m_conn_handle = BLE_CONN_HANDLE_INVALID;
+                round_ID = 0;
+                sess_check = 0;
+                //advertising_start();
+              } 
+           }
+           else
+           {
+              printf("<0x02> TAG NUM Invalid!!\n\n");
+           }
+            
            break; 
 
         case 0x03:
-           printf("RCM data\n\n");
+           if(r_data[2] == TAG_ID)
+           {
+              anchor_ID = r_data[1];
+              printf("@@@@ Warning! Warning! Intensity : %d @@@@\n\n", r_data[3]);
+           }
+           else
+           {
+              printf("<0x03> TAG NUM Invalid!!\n\n");
+           }
            break;   
-        }
-    }
+        }//switch end
+    }//if (p_evt->type == BLE_NUS_EVT_RX_DATA)
 }
 
 
@@ -589,6 +614,8 @@ static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
     if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
     {
         err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+        sess_check = 0;
+        round_ID = 0;
         APP_ERROR_CHECK(err_code);
     }
 }
@@ -686,16 +713,18 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            NRF_LOG_INFO("Connected");
+            printf("Connected\n\n");
             bsp_board_led_on(CONNECTED_LED);
             bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
-            NRF_LOG_INFO("Disconnected");
+            printf("Disconnected\n\n\n");
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            sess_check = 0;
+            round_ID = 0;
             advertising_start();
             break;
 
@@ -731,6 +760,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_DEBUG("GATT Client Timeout.");
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            sess_check = 0;
+            round_ID = 0;
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -739,6 +770,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_DEBUG("GATT Server Timeout.");
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            sess_check = 0;
+            round_ID = 0;
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -806,6 +839,8 @@ static void bsp_event_handler(bsp_event_t event)
         case BSP_EVENT_DISCONNECT:
                 err_code = sd_ble_gap_disconnect(m_conn_handle,
                                                  BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+                sess_check = 0;
+                round_ID = 0;
                 if (err_code != NRF_ERROR_INVALID_STATE)
                 {
                         APP_ERROR_CHECK(err_code);
@@ -1048,7 +1083,6 @@ int ds_twr_init(void)
 
     dwt_setrxantennadelay(RX_ANT_DLY);
     dwt_settxantennadelay(TX_ANT_DLY);
-
     //dwt_setrxaftertxdelay(POLL_TX_TO_RESP_RX_DLY_UUS);
     //dwt_setrxtimeout(RESP_RX_TIMEOUT_UUS);
     //dwt_setpreambledetecttimeout(PRE_TIMEOUT);
@@ -1057,8 +1091,10 @@ int ds_twr_init(void)
 
     while (1)
     {
+      
       if(sess_check == 1)
       {
+        //vTaskResume(uwb_thread);
         uint32_t rcm_rx_time;
 
         do{
@@ -1150,8 +1186,13 @@ int ds_twr_init(void)
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR | SYS_STATUS_TXFRS_BIT_MASK);
         }
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(240));
-     }
-  }
+     }// if sess_check == 0
+     //else if (sess_check == 0)
+     //{
+     //   printf("hihih\n\n\n");
+     //}
+  }// while(1)
+  
 }
 
 int rcm_rx(void)
@@ -1165,7 +1206,13 @@ int rcm_rx(void)
       dwt_rxenable(DWT_START_RX_IMMEDIATE);
 
       while (!((status_reg = dwt_read32bitreg(SYS_STATUS_ID)) & (SYS_STATUS_RXFCG_BIT_MASK | SYS_STATUS_ALL_RX_ERR)))
-      {};
+      {
+          if (sess_check == 0)
+          {
+              //dwt_forcetrxoff();
+              //vTaskSuspend(uwb_thread);
+          }
+      };
       
         if (status_reg & SYS_STATUS_RXFCG_BIT_MASK)
         {
