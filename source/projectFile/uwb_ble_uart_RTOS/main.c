@@ -69,7 +69,7 @@ extern dwt_txconfig_t txconfig_options;
 
 #define APP_BLE_OBSERVER_PRIO               3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG                1                                       /**< A tag identifying the SoftDevice BLE configuration. */
-#define UWB_ROUND_INTERVAL         APP_TIMER_TICKS(30)   //1 : 60ms, 0.06               /**< Battery level measurement interval (ticks). This value corresponds to 120 seconds. */
+//#define UWB_ROUND_INTERVAL         APP_TIMER_TICKS(30)   //1 : 60ms, 0.06               /**< Battery level measurement interval (ticks). This value corresponds to 120 seconds. */
 
 #define APP_ADV_INTERVAL                64                                      /**< The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms). */
 #define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
@@ -103,8 +103,8 @@ extern dwt_txconfig_t txconfig_options;
 #define OSTIMER_WAIT_FOR_QUEUE             10                                      /**< Number of ticks to wait for the timer queue to be ready */
 
 #define MAX_ANC_NUM                        3                                       /* Maximum number of anchors tag can be connected */
-#define TAG_ID                             0x60                                   /* tag ID range : 0x50 ~ 0x99*/
-#define ANCHOR_ID                          0xAA 
+#define TAG_ID                             0x51                                   /* tag ID range : 0x50 ~ 0x99*/
+#define ANCHOR_ID                          0xAA
 
 /*DS_TWR Parameters define*/
 #define ALL_MSG_COMMON_LEN 10
@@ -119,8 +119,10 @@ extern dwt_txconfig_t txconfig_options;
 #define RESP_RX_TIMEOUT_UUS 300
 #define PRE_TIMEOUT 5
 
-#define RANGING_DWTIME 7488018                 //30ms
-#define START_TX_DWTIME 2496006                 //10ms
+#define RANGING_DWTIME   7488018               //30ms
+#define RANGING_DWTIME25 2995207               //12ms :2995207
+//#define START_TX_DWTIME  2496006               //10ms
+#define START_TX_DWTIME25  249600               //1ms
 
 extern example_ptr example_pointer;
 extern int unit_test_main(void);
@@ -147,7 +149,7 @@ NRF_BLE_GATT_DEF(m_gatt);                                                       
 BLE_ADVERTISING_DEF(m_advertising);                                 /**< Advertising module instance. */
 
 BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
-//BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
+BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
 static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                   /**< Advertising handle used to identify an advertising set. */
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
@@ -165,7 +167,7 @@ static uint8_t sess_check;
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3; /**< Maximum length of data (in bytes) : 20byte
                                                                            that can be transmitted to the peer by the Nordic UART service module. */
 
-static char const m_target_periph_name[] = "woorim_test";     /**< Name of the device we try to connect to. This name is searched in the scan report data*/
+//static char const m_target_periph_name[] = "woorim_test";     /**< Name of the device we try to connect to. This name is searched in the scan report data*/
 
 static uint16_t m_conn_handle         = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 
@@ -1090,8 +1092,7 @@ int ds_twr_init(void)
     dwt_setleds(DWT_LEDS_ENABLE | DWT_LEDS_INIT_BLINK);
 
     while (1)
-    {
-      
+    {   
       if(sess_check == 1)
       {
         //vTaskResume(uwb_thread);
@@ -1103,7 +1104,7 @@ int ds_twr_init(void)
 
         dwt_setreferencetrxtime(rcm_rx_time);
 
-        ranging_time = RANGING_DWTIME * round_ID + START_TX_DWTIME - TX_ANT_DLY;
+        ranging_time = RANGING_DWTIME25 * round_ID + START_TX_DWTIME25 - TX_ANT_DLY;
 
         dwt_setdelayedtrxtime(ranging_time);
         
@@ -1185,7 +1186,7 @@ int ds_twr_init(void)
             /* Clear RX error/timeout events in the DW IC status register. */
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR | SYS_STATUS_TXFRS_BIT_MASK);
         }
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(240));
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(8*12));
      }// if sess_check == 0
      //else if (sess_check == 0)
      //{
@@ -1207,11 +1208,11 @@ int rcm_rx(void)
 
       while (!((status_reg = dwt_read32bitreg(SYS_STATUS_ID)) & (SYS_STATUS_RXFCG_BIT_MASK | SYS_STATUS_ALL_RX_ERR)))
       {
-          if (sess_check == 0)
-          {
+          //if (sess_check == 0)
+          //{
               //dwt_forcetrxoff();
               //vTaskSuspend(uwb_thread);
-          }
+          //}
       };
       
         if (status_reg & SYS_STATUS_RXFCG_BIT_MASK)
