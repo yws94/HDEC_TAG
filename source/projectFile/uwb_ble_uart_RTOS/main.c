@@ -55,11 +55,6 @@
 #include <shared_functions.h>
 #include <example_selection.h>
 
-
-/* Values for the PG_DELAY and TX_POWER registers reflect the bandwidth and power of the spectrum at the current
- * temperature. These values can be calibrated prior to taking reference measurements. See NOTE 8 below. */
-extern dwt_txconfig_t txconfig_options;
-
 #define ADVERTISING_LED                 BSP_BOARD_LED_0                         /**< Is on when device is advertising. */
 #define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
 #define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
@@ -83,30 +78,31 @@ extern dwt_txconfig_t txconfig_options;
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define SEC_PARAM_BOND                      1                                       /**< Perform bonding. */
-#define SEC_PARAM_MITM                      0                                       /**< Man In The Middle protection not required. */
-#define SEC_PARAM_LESC                      0                                       /**< LE Secure Connections not enabled. */
-#define SEC_PARAM_KEYPRESS                  0                                       /**< Keypress notifications not enabled. */
-#define SEC_PARAM_IO_CAPABILITIES           BLE_GAP_IO_CAPS_NONE                    /**< No I/O capabilities. */
-#define SEC_PARAM_OOB                       0                                       /**< Out Of Band data not available. */
-#define SEC_PARAM_MIN_KEY_SIZE              7                                       /**< Minimum encryption key size. */
-#define SEC_PARAM_MAX_KEY_SIZE              16                                      /**< Maximum encryption key size. */
+//#define SEC_PARAM_BOND                      1                                       /**< Perform bonding. */
+//#define SEC_PARAM_MITM                      0                                       /**< Man In The Middle protection not required. */
+//#define SEC_PARAM_LESC                      0                                       /**< LE Secure Connections not enabled. */
+//#define SEC_PARAM_KEYPRESS                  0                                       /**< Keypress notifications not enabled. */
+//#define SEC_PARAM_IO_CAPABILITIES           BLE_GAP_IO_CAPS_NONE                    /**< No I/O capabilities. */
+//#define SEC_PARAM_OOB                       0                                       /**< Out Of Band data not available. */
+//#define SEC_PARAM_MIN_KEY_SIZE              7                                       /**< Minimum encryption key size. */
+//#define SEC_PARAM_MAX_KEY_SIZE              16                                      /**< Maximum encryption key size. */
 
 #define DEAD_BEEF                           0xDEADBEEF                              /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 #define UART_TX_BUF_SIZE                    256                                         /**< UART TX buffer size. */
 #define UART_RX_BUF_SIZE                    256                                         /**< UART RX buffer size. */
 
-#define ADC_REF_VOLTAGE_IN_MILLIVOLTS      600                                     /**< Reference voltage (in milli volts) used by ADC while doing conversion. */
-#define ADC_PRE_SCALING_COMPENSATION       6                                       /**< The ADC is configured to use VDD with 1/3 prescaling as input. And hence the result of conversion is to be multiplied by 3 to get the actual value of the battery voltage.*/
-#define DIODE_FWD_VOLT_DROP_MILLIVOLTS     270                                     /**< Typical forward voltage drop of the diode . */
-#define ADC_RES_10BIT                      1024                                    /**< Maximum digital value for 10-bit ADC conversion. */
+//#define ADC_REF_VOLTAGE_IN_MILLIVOLTS      600                                     /**< Reference voltage (in milli volts) used by ADC while doing conversion. */
+//#define ADC_PRE_SCALING_COMPENSATION       6                                       /**< The ADC is configured to use VDD with 1/3 prescaling as input. And hence the result of conversion is to be multiplied by 3 to get the actual value of the battery voltage.*/
+//#define DIODE_FWD_VOLT_DROP_MILLIVOLTS     270                                     /**< Typical forward voltage drop of the diode . */
+//#define ADC_RES_10BIT                      1024                                    /**< Maximum digital value for 10-bit ADC conversion. */
 #define OSTIMER_WAIT_FOR_QUEUE             10                                      /**< Number of ticks to wait for the timer queue to be ready */
 
 #define MAX_ANC_NUM                        3                                       /* Maximum number of anchors tag can be connected */
-#define TAG_ID                             0x51                                   /* tag ID range : 0x50 ~ 0x99*/
-#define ANCHOR_ID                          0xAA
+#define TAG_ID                             0x60                                   /* tag ID range : 0x50 ~ 0x99*/
+#define ANCHOR_ID                          0xAA                                   /* It'll be deleted when RCM message format negotiation is set */
 
-/*DS_TWR Parameters define*/
+/*UWB Ranging Parameters define*/
+
 #define ALL_MSG_COMMON_LEN 10
 #define ALL_MSG_SN_IDX 2
 #define FINAL_MSG_POLL_TX_TS_IDX 10
@@ -119,37 +115,29 @@ extern dwt_txconfig_t txconfig_options;
 #define RESP_RX_TIMEOUT_UUS 300
 #define PRE_TIMEOUT 5
 
-#define RANGING_DWTIME   7488018               //30ms
+#define RANGING_DWTIME   7488018               /**< Round delay offset time : e.g. 30ms*/
 #define RANGING_DWTIME25 2995207               //12ms :2995207
-//#define START_TX_DWTIME  2496006               //10ms
+//#define START_TX_DWTIME  2496006               /**< Delay for starting to transmit TX poll msg : e.g. 10ms*/
 #define START_TX_DWTIME25  249600               //1ms
 
+extern dwt_txconfig_t txconfig_options;
 extern example_ptr example_pointer;
 extern int unit_test_main(void);
 extern void build_examples(void);
-extern void ACK_SESS_SEND();
-extern void ACK_UP_SEND();
-extern void test_run_info(unsigned char *data);
+extern void ACK_SESS_SEND(void);
+extern void ACK_UP_SEND(void);
+//extern void test_run_info(unsigned char *data);
 extern int ds_twr_init(void);
 extern int rcm_rx(void); 
 
-/**@brief Macro to convert the result of ADC conversion in millivolts.
- *
- * @param[in]  ADC_VALUE   ADC result.
- *
- * @retval     Result converted to millivolts.
- */
-#define ADC_RESULT_IN_MILLI_VOLTS(ADC_VALUE) \
-        ((((ADC_VALUE) *ADC_REF_VOLTAGE_IN_MILLIVOLTS) / ADC_RES_10BIT) * ADC_PRE_SCALING_COMPENSATION)
 
-static nrf_saadc_value_t adc_buf[2];
-
+/* BLE_Variables */
 BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                                   /**< BLE NUS service instance. */
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
 BLE_ADVERTISING_DEF(m_advertising);                                 /**< Advertising module instance. */
 
 BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
-BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
+//BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
 static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                   /**< Advertising handle used to identify an advertising set. */
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
@@ -160,23 +148,49 @@ static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         
 //    uint8_t rng_round;
 //};
 
-static uint8_t anchor_ID;              /* Buffer for storing anchor number */
-static uint8_t round_ID;                          /* Ranging round ID that can be used for tag' sleeping*/
-static uint8_t sess_check; 
+
+///**@brief Macro to convert the result of ADC conversion in millivolts.
+// *
+// * @param[in]  ADC_VALUE   ADC result.
+// *
+// * @retval     Result converted to millivolts.
+// */
+//#define ADC_RESULT_IN_MILLI_VOLTS(ADC_VALUE) \
+//        ((((ADC_VALUE) *ADC_REF_VOLTAGE_IN_MILLIVOLTS) / ADC_RES_10BIT) * ADC_PRE_SCALING_COMPENSATION)
+
+//static nrf_saadc_value_t adc_buf[2];
+
 
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3; /**< Maximum length of data (in bytes) : 20byte
                                                                            that can be transmitted to the peer by the Nordic UART service module. */
 
-//static char const m_target_periph_name[] = "woorim_test";     /**< Name of the device we try to connect to. This name is searched in the scan report data*/
-
 static uint16_t m_conn_handle         = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 
-static ble_uuid_t m_adv_uuids[] =                                   /**< Universally unique service identifiers. */
+//static ble_uuid_t m_adv_uuids[] =                                   /**< Universally unique service identifiers. */
+//{
+//    {BLE_UUID_HEART_RATE_SERVICE, BLE_UUID_TYPE_BLE},
+//    {BLE_UUID_BATTERY_SERVICE, BLE_UUID_TYPE_BLE},
+//    {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
+//};
+
+/**@brief Struct that contains pointers to the encoded advertising data. */
+static ble_gap_adv_data_t m_adv_data =
 {
-    {BLE_UUID_HEART_RATE_SERVICE, BLE_UUID_TYPE_BLE},
-    {BLE_UUID_BATTERY_SERVICE, BLE_UUID_TYPE_BLE},
-    {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
+    .adv_data =
+    {
+        .p_data = m_enc_advdata,
+        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+    },
+    .scan_rsp_data =
+    {
+        .p_data = m_enc_scan_response_data,
+        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+
+    }
 };
+
+//BLE_Variables End
+
 
 /* DS_TWR_Variables */
 static dwt_config_t config = {
@@ -195,7 +209,7 @@ static dwt_config_t config = {
     DWT_PDOA_M0      /* PDOA mode off */
 };
 
-static uint8_t RCM_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'R', 'C', 'M', ANCHOR_ID, 0, 0}; //*******************************//
+static uint8_t RCM_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'R', 'C', 'M', ANCHOR_ID, 0, 0}; 
 static uint8_t tx_poll_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'W', 'A', 'V', 'E', 0x21};
 static uint8_t rx_resp_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'V', 'E', 'W', 'A', 0x10, 0x02, 0, 0};
 static uint8_t tx_final_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'W', 'A', 'V', 'E', 0x23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -211,9 +225,14 @@ static uint32_t status_reg = 0;
 static uint64_t poll_tx_ts;
 static uint64_t resp_rx_ts;
 static uint64_t final_tx_ts;
-static uint32_t ranging_time; //*******************************//
+static uint32_t ranging_time; 
+
+static uint8_t anchor_ID;                         /* Storing anchor number when received from BLE Central */
+static uint8_t round_ID;                          /* Ranging round ID that can be used for tag' sleeping time */
+static uint8_t sess_check; 
 // DS-TWR Variable End
 
+/* Defining Handler(thread) Name */
 static TimerHandle_t m_battery_timer;                               /**< Definition of battery timer. */
 
 #if NRF_LOG_ENABLED
@@ -221,23 +240,8 @@ static TaskHandle_t m_logger_thread;                                /**< Definit
 #endif
 static TaskHandle_t uwb_thread;                                /**< Definition of Logger thread. */
 
-static TickType_t xLastWakeTime; //*******************************//
+static TickType_t xLastWakeTime;
 
-/**@brief Struct that contains pointers to the encoded advertising data. */
-static ble_gap_adv_data_t m_adv_data =
-{
-    .adv_data =
-    {
-        .p_data = m_enc_advdata,
-        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
-    },
-    .scan_rsp_data =
-    {
-        .p_data = m_enc_scan_response_data,
-        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
-
-    }
-};
 
 #define FPU_EXCEPTION_MASK 0x0000009F
 void FPU_IRQHandler(void)
@@ -249,10 +253,10 @@ void FPU_IRQHandler(void)
 }
 
 
-void test_run_info(unsigned char *data)
-{
-    printf("%s\n", data);
-}
+//void test_run_info(unsigned char *data)
+//{
+//    printf("%s\n", data);
+//}
 
 
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
@@ -272,32 +276,32 @@ static void advertising_start(void)
     bsp_board_led_on(ADVERTISING_LED);
 }
 
-/**@brief Function for handling characters received by the Tag.
- */
-static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_len)
-{
-        ret_code_t ret_val;
+///**@brief Function for handling characters received by the Tag.
+// */
+//static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_len)
+//{
+//        ret_code_t ret_val;
 
-        printf("Receiving data.");
-        NRF_LOG_HEXDUMP_DEBUG(p_data, data_len);
+//        printf("Receiving data.");
+//        NRF_LOG_HEXDUMP_DEBUG(p_data, data_len);
 
-        for (uint32_t i = 0; i < data_len; i++)
-        {
-                do
-                {
-                        ret_val = app_uart_put(p_data[i]);
-                        if ((ret_val != NRF_SUCCESS) && (ret_val != NRF_ERROR_BUSY))
-                        {
-                                printf("<Error> app_uart_put failed for index 0x%04x.\n", i);
-                                APP_ERROR_CHECK(ret_val);
-                        }
-                } while (ret_val == NRF_ERROR_BUSY);
-        }
-        if (p_data[data_len-1] == '\r')
-        {
-                while (app_uart_put('\n') == NRF_ERROR_BUSY);
-        }
-}
+//        for (uint32_t i = 0; i < data_len; i++)
+//        {
+//                do
+//                {
+//                        ret_val = app_uart_put(p_data[i]);
+//                        if ((ret_val != NRF_SUCCESS) && (ret_val != NRF_ERROR_BUSY))
+//                        {
+//                                printf("<Error> app_uart_put failed for index 0x%04x.\n", i);
+//                                APP_ERROR_CHECK(ret_val);
+//                        }
+//                } while (ret_val == NRF_ERROR_BUSY);
+//        }
+//        if (p_data[data_len-1] == '\r')
+//        {
+//                while (app_uart_put('\n') == NRF_ERROR_BUSY);
+//        }
+//}
 
 
 /**@brief   Function for handling app_uart events.
@@ -381,11 +385,12 @@ static void gap_params_init(void)
     gap_conn_params.slave_latency     = SLAVE_LATENCY;
     gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
 
-    err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
+    err_code = sd_ble_gap_ppcp_set(&gap_conn_params); // GAP Peripheral Preferred Connection Parameters
     APP_ERROR_CHECK(err_code);
 }
 
 /**@brief Function for handling events from the GATT library. */
+/* @ params [in] p_gatt : GATT module event handler type, p_evt : GATT module event */
 void gatt_evt_handler(nrf_ble_gatt_t * p_gatt, nrf_ble_gatt_evt_t const * p_evt)
 {
         uint32_t data_length;
@@ -411,10 +416,10 @@ static void gatt_init(void)
         ret_code_t err_code = nrf_ble_gatt_init(&m_gatt, gatt_evt_handler);
         APP_ERROR_CHECK(err_code);
 
-        err_code = nrf_ble_gatt_att_mtu_periph_set(&m_gatt, NRF_SDH_BLE_GATT_MAX_MTU_SIZE);
+        err_code = nrf_ble_gatt_att_mtu_periph_set(&m_gatt, NRF_SDH_BLE_GATT_MAX_MTU_SIZE); // 23 byte
         APP_ERROR_CHECK(err_code);
 
-        err_code = nrf_ble_gatt_data_length_set(&m_gatt, BLE_CONN_HANDLE_INVALID, NRF_SDH_BLE_GAP_DATA_LENGTH);
+        err_code = nrf_ble_gatt_data_length_set(&m_gatt, BLE_CONN_HANDLE_INVALID, NRF_SDH_BLE_GAP_DATA_LENGTH); //27 byte
         APP_ERROR_CHECK(err_code);
 }
 
@@ -449,8 +454,10 @@ static void uart_init(void)
 }
 
 
-/**@brief  Function for sending ACK message through the UART module. */
-void ACK_SESS_SEND()
+/**@brief  Function for sending ACK message through the UART module.
+ */
+/* Sending ACK message when received Round message in Session establishment process. */
+void ACK_SESS_SEND(void)
 {
         ret_code_t send_check;
 
@@ -473,8 +480,10 @@ void ACK_SESS_SEND()
         printf("<Session> Finished sending ACK message. \n\n");
 }
 
-/**@brief  Function for sending ACK message through the UART module. */
-void ACK_UP_SEND()
+/**@brief  Function for sending ACK message through the UART module. 
+*/
+/* Sending ACK message when received Session Update message. */
+void ACK_UP_SEND(void)
 {
         ret_code_t send_check;
 
@@ -503,6 +512,11 @@ void ACK_UP_SEND()
  *          it to the UART module.
  *
  * @param[in] p_evt       Nordic UART Service event.
+ *
+ *    Case  1. Received Session Establishment Message : Send Ack_Session Message -> Obtaining Anchor ID & Round ID -> Set UWB session flag(Ranging Start)
+ *          2. 1) Received Session Update Message : Reset all parameters related to UWB Session. -> Send Ack_Session_update Message -> Set all updated UWB Session parameters
+ *             2) Received Session Discard Message : Disconnect BLE connection event -> Reset all parameters related to UWB Session
+  *         3. Received BLE Alarming Message : Print Warning Message. 
  */
 /**@snippet [Handling the data received over BLE] */
 static void nus_data_handler(ble_nus_evt_t * p_evt)
@@ -550,11 +564,9 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
               {
                 printf("Session will be discarded!!\n\n");
                 sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-                //bsp_board_led_off(CONNECTED_LED);
                 m_conn_handle = BLE_CONN_HANDLE_INVALID;
                 round_ID = 0;
                 sess_check = 0;
-                //advertising_start();
               } 
            }
            else
@@ -568,7 +580,7 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
            if(r_data[2] == TAG_ID)
            {
               anchor_ID = r_data[1];
-              printf("@@@@ Warning! Warning! Intensity : %d @@@@\n\n", r_data[3]);
+              printf("@@@@ Warning! Intensity : %d @@@@\n\n", r_data[3]);
            }
            else
            {
@@ -613,9 +625,9 @@ static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
 {
     uint32_t err_code;
 
-    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
+    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED) // Connection Parameters Module event type -> Negotiation procedure failed
     {
-        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE); // Connection Interval Unacceptable
         sess_check = 0;
         round_ID = 0;
         APP_ERROR_CHECK(err_code);
@@ -708,11 +720,11 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
  * @param[in]   p_ble_evt   Bluetooth stack event.
  * @param[in]   p_context   Unused.
  */
-static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
+static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) // ble_evt_t : Common BLE Event type
 {
    ret_code_t err_code;
 
-    switch (p_ble_evt->header.evt_id)
+    switch (p_ble_evt->header.evt_id) // BLE Event header -> Value from a BLE_<module>_EVT series.
     {
         case BLE_GAP_EVT_CONNECTED:
             printf("Connected\n\n");
