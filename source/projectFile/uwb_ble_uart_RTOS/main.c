@@ -64,7 +64,6 @@
 
 #define APP_BLE_OBSERVER_PRIO               3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG                1                                       /**< A tag identifying the SoftDevice BLE configuration. */
-//#define UWB_ROUND_INTERVAL         APP_TIMER_TICKS(30)   //1 : 60ms, 0.06               /**< Battery level measurement interval (ticks). This value corresponds to 120 seconds. */
 
 #define APP_ADV_INTERVAL                64                                      /**< The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms). */
 #define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
@@ -86,6 +85,10 @@
 //#define SEC_PARAM_OOB                       0                                       /**< Out Of Band data not available. */
 //#define SEC_PARAM_MIN_KEY_SIZE              7                                       /**< Minimum encryption key size. */
 //#define SEC_PARAM_MAX_KEY_SIZE              16                                      /**< Maximum encryption key size. */
+
+/* Queue & Semaphore parameters define */
+#define QUEUE_LENGTH                        2
+#define QUEUE_ITEM_SIZE                     sizeof(Session_Data_t)
 
 #define DEAD_BEEF                           0xDEADBEEF                              /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 #define UART_TX_BUF_SIZE                    256                                         /**< UART TX buffer size. */
@@ -120,16 +123,23 @@
 //#define START_TX_DWTIME  2496006               /**< Delay for starting to transmit TX poll msg : e.g. 10ms*/
 #define START_TX_DWTIME25  249600               //1ms
 
+/* Queue & Semaphore */
+static QueueHandle_t xQueue; // Queue for BLE-UWB task interface
+
+typedef struct
+{
+    uint8_t anchor_ID;
+    uint8_t round_ID;
+}Session_Data_t;
+
 extern dwt_txconfig_t txconfig_options;
 extern example_ptr example_pointer;
 extern int unit_test_main(void);
 extern void build_examples(void);
-extern void ACK_SESS_SEND(void);
-extern void ACK_UP_SEND(void);
-//extern void test_run_info(unsigned char *data);
-extern int ds_twr_init(void);
-extern int rcm_rx(void); 
-
+int ds_twr_init(void);
+int rcm_rx(void);
+void ACK_SESS_SEND(Session_Data_t sess_t);
+void ACK_UP_SEND(Session_Data_t up_t);
 
 /* BLE_Variables */
 BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                                   /**< BLE NUS service instance. */
@@ -142,12 +152,6 @@ BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                   /**< Advertising handle used to identify an advertising set. */
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
 static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         /**< Buffer for storing an encoded scan data. */
-
-//struct ranging_alloc{
-//    uint8_t anc_ID;
-//    uint8_t rng_round;
-//};
-
 
 ///**@brief Macro to convert the result of ADC conversion in millivolts.
 // *
@@ -188,7 +192,6 @@ static ble_gap_adv_data_t m_adv_data =
 
     }
 };
-
 //BLE_Variables End
 
 
@@ -226,9 +229,6 @@ static uint64_t poll_tx_ts;
 static uint64_t resp_rx_ts;
 static uint64_t final_tx_ts;
 static uint32_t ranging_time; 
-
-static uint8_t anchor_ID;                         /* Storing anchor number when received from BLE Central */
-static uint8_t round_ID;                          /* Ranging round ID that can be used for tag' sleeping time */
 static uint8_t sess_check; 
 // DS-TWR Variable End
 
@@ -252,13 +252,6 @@ void FPU_IRQHandler(void)
         *fpscr = *fpscr & ~(FPU_EXCEPTION_MASK);
 }
 
-
-//void test_run_info(unsigned char *data)
-//{
-//    printf("%s\n", data);
-//}
-
-
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 {
         app_error_handler(DEAD_BEEF, line_num, p_file_name);
@@ -275,33 +268,6 @@ static void advertising_start(void)
 
     bsp_board_led_on(ADVERTISING_LED);
 }
-
-///**@brief Function for handling characters received by the Tag.
-// */
-//static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_len)
-//{
-//        ret_code_t ret_val;
-
-//        printf("Receiving data.");
-//        NRF_LOG_HEXDUMP_DEBUG(p_data, data_len);
-
-//        for (uint32_t i = 0; i < data_len; i++)
-//        {
-//                do
-//                {
-//                        ret_val = app_uart_put(p_data[i]);
-//                        if ((ret_val != NRF_SUCCESS) && (ret_val != NRF_ERROR_BUSY))
-//                        {
-//                                printf("<Error> app_uart_put failed for index 0x%04x.\n", i);
-//                                APP_ERROR_CHECK(ret_val);
-//                        }
-//                } while (ret_val == NRF_ERROR_BUSY);
-//        }
-//        if (p_data[data_len-1] == '\r')
-//        {
-//                while (app_uart_put('\n') == NRF_ERROR_BUSY);
-//        }
-//}
 
 
 /**@brief   Function for handling app_uart events.
@@ -454,14 +420,116 @@ static void uart_init(void)
 }
 
 
+
+
+/**@brief Function for handling the data from the Nordic UART Service.
+ *
+ * @details This function will process the data received from the Nordic UART BLE Service and send
+ *          it to the UART module.
+ *
+ * @param[in] p_evt       Nordic UART Service event.
+ *
+ *    Case  1. Received Session Establishment Message : Send Ack_Session Message -> Obtaining Anchor ID & Round ID -> Set UWB session flag(Ranging Start)
+ *          2. 1) Received Session Update Message : Reset all parameters related to UWB Session. -> Send Ack_Session_update Message -> Set all updated UWB Session parameters
+ *             2) Received Session Discard Message : Disconnect BLE connection event -> Reset all parameters related to UWB Session
+  *         3. Received BLE Alarming Message : Print Warning Message. 
+ */
+/**@snippet [Handling the data received over BLE] */
+static void nus_data_handler(ble_nus_evt_t * p_evt)
+{
+    Session_Data_t xSendSession;
+    BaseType_t xStatus;
+    const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
+
+    if (p_evt->type == BLE_NUS_EVT_RX_DATA)
+    {
+        uint8_t r_data[p_evt->params.rx_data.length];
+
+        NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
+        NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
+
+        for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++)
+        {
+           r_data[i]=p_evt->params.rx_data.p_data[i];
+          
+        }
+        
+        switch(r_data[0]){
+        
+        case 0x01: 
+           printf("Session Established\n\n");
+           xSendSession.anchor_ID = r_data[1];
+           xSendSession.round_ID = r_data[2];
+           sess_check = 1;
+           xStatus = xQueueSendToBack(xQueue, &xSendSession, xTicksToWait);
+           ACK_SESS_SEND(xSendSession);
+           if(xStatus == pdPASS)
+           {
+              printf("Anchor ID : %x, Round : %d\n\n", xSendSession.anchor_ID, xSendSession.round_ID);
+           }
+           else
+           {  
+              printf("Could not send to the queue.\r\n");
+           }
+
+           
+           break;
+        
+        case 0x02:
+           if(r_data[1] == TAG_ID)
+           {
+              if ((r_data[3] != xSendSession.round_ID) && (r_data[3] != 0))
+              {
+                printf("Session Updated!!\n\n");
+                xSendSession.round_ID = 0;
+                sess_check = 0;
+                xSendSession.anchor_ID = r_data[2];
+                xSendSession.round_ID = r_data[3];
+                ACK_UP_SEND(xSendSession);
+                
+                sess_check = 1;
+                printf("Session Updated well. Anchor ID : %x, Round : %d\n\n", xSendSession.anchor_ID, xSendSession.round_ID);
+              }
+
+              else if(r_data[3] == 0)
+              {
+                printf("Session will be discarded!!\n\n");
+                sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+                m_conn_handle = BLE_CONN_HANDLE_INVALID;
+                xSendSession.round_ID = 0;
+                sess_check = 0;
+              } 
+           }
+           else
+           {
+              printf("<0x02> TAG NUM Invalid!!\n\n");
+           }
+            
+           break; 
+
+        case 0x03:
+           if(r_data[2] == TAG_ID)
+           {
+              xSendSession.anchor_ID = r_data[1];
+              printf("@@@@ Warning! Intensity : %d @@@@\n\n", r_data[3]);
+           }
+           else
+           {
+              printf("<0x03> TAG NUM Invalid!!\n\n");
+           }
+           break;   
+        }//switch end
+    }//if (p_evt->type == BLE_NUS_EVT_RX_DATA)
+}
+
 /**@brief  Function for sending ACK message through the UART module.
  */
 /* Sending ACK message when received Round message in Session establishment process. */
-void ACK_SESS_SEND(void)
+void ACK_SESS_SEND(Session_Data_t sess_t)
 {
         ret_code_t send_check;
 
-        uint8_t data_array[4] = {0x01, TAG_ID, 0xAC, round_ID};
+        uint8_t data_array[4] = {0x01, TAG_ID, 0xAC, sess_t.round_ID};
 
         printf("<Session> Send ACK message. \n\n");                
         do
@@ -483,11 +551,11 @@ void ACK_SESS_SEND(void)
 /**@brief  Function for sending ACK message through the UART module. 
 */
 /* Sending ACK message when received Session Update message. */
-void ACK_UP_SEND(void)
+void ACK_UP_SEND(Session_Data_t up_t)
 {
         ret_code_t send_check;
 
-        uint8_t data_array[5] = {0x02, anchor_ID, TAG_ID, 0xAC, round_ID};
+        uint8_t data_array[5] = {0x02, up_t.anchor_ID, TAG_ID, 0xAC, up_t.round_ID};
 
         printf("<Update> Send ACK message. \n\n");                
         do
@@ -505,93 +573,6 @@ void ACK_UP_SEND(void)
         APP_ERROR_CHECK(send_check);
         printf("<Update> Finished sending ACK message. \n\n");
 }
-
-/**@brief Function for handling the data from the Nordic UART Service.
- *
- * @details This function will process the data received from the Nordic UART BLE Service and send
- *          it to the UART module.
- *
- * @param[in] p_evt       Nordic UART Service event.
- *
- *    Case  1. Received Session Establishment Message : Send Ack_Session Message -> Obtaining Anchor ID & Round ID -> Set UWB session flag(Ranging Start)
- *          2. 1) Received Session Update Message : Reset all parameters related to UWB Session. -> Send Ack_Session_update Message -> Set all updated UWB Session parameters
- *             2) Received Session Discard Message : Disconnect BLE connection event -> Reset all parameters related to UWB Session
-  *         3. Received BLE Alarming Message : Print Warning Message. 
- */
-/**@snippet [Handling the data received over BLE] */
-static void nus_data_handler(ble_nus_evt_t * p_evt)
-{
-    if (p_evt->type == BLE_NUS_EVT_RX_DATA)
-    {
-        uint8_t r_data[p_evt->params.rx_data.length];
-
-        NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
-        NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
-
-        for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++)
-        {
-           r_data[i]=p_evt->params.rx_data.p_data[i];
-          
-        }
-        
-        switch(r_data[0]){
-        
-        case 0x01: 
-           printf("Session Established\n\n");
-           anchor_ID=r_data[1];
-           round_ID=r_data[2];
-           sess_check = 1;
-           ACK_SESS_SEND();
-           printf("Anchor ID : %x, Round : %d\n\n", anchor_ID, round_ID);
-           break;
-        
-        case 0x02:
-           if(r_data[1] == TAG_ID)
-           {
-              if ((r_data[3] != round_ID) && (r_data[3] != 0))
-              {
-                printf("Session Updated!!\n\n");
-                round_ID = 0;
-                sess_check = 0;
-                anchor_ID = r_data[2];
-                ACK_UP_SEND();
-                round_ID = r_data[3];
-                sess_check = 1;
-                printf("Session Updated well. Anchor ID : %x, Round : %d\n\n", anchor_ID, round_ID);
-              }
-
-              else if(r_data[3] == 0)
-              {
-                printf("Session will be discarded!!\n\n");
-                sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-                m_conn_handle = BLE_CONN_HANDLE_INVALID;
-                round_ID = 0;
-                sess_check = 0;
-              } 
-           }
-           else
-           {
-              printf("<0x02> TAG NUM Invalid!!\n\n");
-           }
-            
-           break; 
-
-        case 0x03:
-           if(r_data[2] == TAG_ID)
-           {
-              anchor_ID = r_data[1];
-              printf("@@@@ Warning! Intensity : %d @@@@\n\n", r_data[3]);
-           }
-           else
-           {
-              printf("<0x03> TAG NUM Invalid!!\n\n");
-           }
-           break;   
-        }//switch end
-    }//if (p_evt->type == BLE_NUS_EVT_RX_DATA)
-}
-
-
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -629,7 +610,7 @@ static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
     {
         err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE); // Connection Interval Unacceptable
         sess_check = 0;
-        round_ID = 0;
+        //round_ID = 0;
         APP_ERROR_CHECK(err_code);
     }
 }
@@ -738,7 +719,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) // bl
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             sess_check = 0;
-            round_ID = 0;
+            //round_ID = 0;
             advertising_start();
             break;
 
@@ -775,7 +756,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) // bl
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             sess_check = 0;
-            round_ID = 0;
+            //round_ID = 0;
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -785,7 +766,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) // bl
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             sess_check = 0;
-            round_ID = 0;
+            //round_ID = 0;
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -794,23 +775,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) // bl
             break;
     }
 }
-
-
-
-///**@brief Function for initializing the Nordic UART Service (NUS) client. */
-//static void nus_c_init(void)
-//{
-//        ret_code_t err_code;
-//        ble_nus_c_init_t init;
-
-//        init.evt_handler = ble_nus_c_evt_handler;
-
-//        for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
-//        {
-//                err_code = ble_nus_c_init(&m_ble_nus_c[i], &init);
-//                APP_ERROR_CHECK(err_code);
-//        }
-//}
 
 /**@brief Function for initializing the BLE stack.
  *
@@ -837,8 +801,6 @@ static void ble_stack_init(void)
     NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 }
 
-
-
 /**@brief Function for handling events from the BSP module.
  *
  * @param[in]   event   Event generated by button press.
@@ -854,7 +816,7 @@ static void bsp_event_handler(bsp_event_t event)
                 err_code = sd_ble_gap_disconnect(m_conn_handle,
                                                  BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
                 sess_check = 0;
-                round_ID = 0;
+                //round_ID = 0;
                 if (err_code != NRF_ERROR_INVALID_STATE)
                 {
                         APP_ERROR_CHECK(err_code);
@@ -1054,7 +1016,7 @@ int main(void)
         nrf_drv_gpiote_in_event_disable(DW3000_IRQn_Pin);
         nrf_delay_ms(2);
 
-        /* UWB Tast start */
+        /* UWB Task start */
         if (pdPASS != xTaskCreate(ds_twr_init, "UWB", 2*1024, NULL, 1, &uwb_thread))
         {
                 APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
@@ -1062,6 +1024,9 @@ int main(void)
 
         /* Create a FreeRTOS task for the BLE stack. */
         nrf_sdh_freertos_init(advertising_start, &erase_bonds);
+
+        /* Create queue to store round_ID that is accessed by BLE & UWB tasks */
+        xQueue = xQueueCreate(QUEUE_LENGTH, QUEUE_ITEM_SIZE);
 
         printf("UWB & BLE RTOS Start.\n");
         vTaskStartScheduler();
@@ -1073,6 +1038,7 @@ int main(void)
 
 int ds_twr_init(void)
 {
+
     port_set_dw_ic_spi_fastrate();
 
     reset_DWIC(); 
@@ -1107,6 +1073,16 @@ int ds_twr_init(void)
     {   
       if(sess_check == 1)
       {
+        Session_Data_t xReceivedSession;
+        BaseType_t xStatus;
+        const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
+
+        xStatus = xQueueReceive(xQueue, &xReceivedSession, xTicksToWait);
+        if(xStatus == pdPASS)
+        {
+            printf("Round ID : %d", xReceivedSession.round_ID);
+        }
+
         //vTaskResume(uwb_thread);
         uint32_t rcm_rx_time;
 
@@ -1116,7 +1092,7 @@ int ds_twr_init(void)
 
         dwt_setreferencetrxtime(rcm_rx_time);
 
-        ranging_time = RANGING_DWTIME25 * round_ID + START_TX_DWTIME25 - TX_ANT_DLY;
+        ranging_time = RANGING_DWTIME25 * xReceivedSession.round_ID + START_TX_DWTIME25 - TX_ANT_DLY;
 
         dwt_setdelayedtrxtime(ranging_time);
         
@@ -1200,10 +1176,6 @@ int ds_twr_init(void)
         }
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(8*12));
      }// if sess_check == 0
-     //else if (sess_check == 0)
-     //{
-     //   printf("hihih\n\n\n");
-     //}
   }// while(1)
   
 }

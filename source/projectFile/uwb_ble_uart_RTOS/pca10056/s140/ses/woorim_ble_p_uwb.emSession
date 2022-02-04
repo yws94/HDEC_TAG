@@ -3,10 +3,7 @@
  <Bookmarks/>
  <Breakpoints groups="Breakpoints" active_group="Breakpoints">
   <BreakpointListItem trigger="Execute" line="0" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="0x339bc" group="Breakpoints" type="Breakpoint" state="3" filename="../ses" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="618" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="764" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="774" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="843" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
+  <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
  <FrameBufferWindow>
@@ -67,10 +64,12 @@
   <Trace enabled="Yes"/>
  </TraceWindow>
  <Watch1>
-  <Watches active="1" update="Never">
+  <Watches active="1" update="Three Seconds">
    <Watchpoint expression="rx_resp_msg" name="rx_resp_msg" radix="-1" linenumber="0" filename="../ses"/>
    <Watchpoint expression="rx_buffer" name="rx_buffer" radix="-1" linenumber="0" filename="../ses"/>
    <Watchpoint expression="tx_final_msg" name="tx_final_msg" radix="-1" linenumber="0" filename="../ses"/>
+   <Watchpoint expression="r_data" name="r_data" radix="16" linenumber="0" filename=""/>
+   <Watchpoint expression="xQueue" name="xQueue" radix="-1" linenumber="0" filename=""/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -83,13 +82,20 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="1221" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="1206" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="5" y="111" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../modified_components/softdevice/s132/headers/ble_gap.h" selected="0" top="94" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="606" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/drivers/src/nrfx_spim.c" selected="0" top="583" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="507" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../integration/nrfx/legacy/nrf_drv_spi.h" selected="0" top="484" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="297" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="deca_spi.c" selected="0" top="274" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="394" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../../project_peripheral/DW3000_API_C0_rev4p0/API/Src/decadriver/deca_device.c" selected="0" top="350" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="16" y="260" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/hal/nrf_saadc.h" selected="0" top="237" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="1205" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="1190" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="19" y="56" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../modified_external/freertos/source/include/FreeRTOS.h" selected="0" top="21" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="140" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/modified_external/freertos/source/include/FreeRTOS.h" useBinaryEdit="0" left="0" path="../../../config/FreeRTOSConfig.h" selected="0" top="98" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="2" y="112" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/ws/project_peripheral_pure/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/ble/ble_advertising/ble_advertising.h" selected="0" top="87" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="71" y="648" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../modified_external/freertos/source/include/queue.h" selected="0" top="621" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="71" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../integration/nrfx/legacy/nrf_drv_spi.c" selected="0" top="35" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="698" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/drivers/src/nrfx_spim.c" selected="0" top="653" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="297" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="deca_spi.c" selected="0" top="274" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="394" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../../project_peripheral/DW3000_API_C0_rev4p0/API/Src/decadriver/deca_device.c" selected="0" top="350" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="663" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/hal/nrf_spim.h" selected="0" top="640" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="507" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../integration/nrfx/legacy/nrf_drv_spi.h" selected="0" top="484" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="658" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../modified_components/softdevice/s132/headers/nrf_soc.h" selected="0" top="635" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="242" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../modified_external/freertos/portable/CMSIS/nrf52/port_cmsis_systick.c" selected="0" top="220" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="1677" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../../project_peripheral/source/projectFile/modified_external/freertos/source/tasks.c" selected="0" top="1655" codecName=""/>
  </Files>
- <ARMCrossStudioWindow activeProject="woorim_ble_p_uwb" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf52840.s&#xa;&#xa;C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf_common.s&#xa;&#xa;C:/Users/yws/Desktop/project_peripheral/source/projectFile/uwb_ble_uart_RTOS/main.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
+ <ARMCrossStudioWindow activeProject="woorim_ble_p_uwb" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf52840.s&#xa;&#xa;C:/Users/UnLab/Desktop/project_peripheral/modules/nrfx/mdk/ses_startup_nrf_common.s&#xa;&#xa;C:/Users/yws/Desktop/project_peripheral/source/projectFile/uwb_ble_uart_RTOS/main.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>
