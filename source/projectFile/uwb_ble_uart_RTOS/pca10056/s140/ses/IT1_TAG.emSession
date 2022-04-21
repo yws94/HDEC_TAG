@@ -1,0 +1,86 @@
+<!DOCTYPE CrossStudio_Session_File>
+<session>
+ <Bookmarks/>
+ <Breakpoints groups="Breakpoints" active_group="Breakpoints"/>
+ <ExecutionProfileWindow/>
+ <FrameBufferWindow>
+  <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
+ </FrameBufferWindow>
+ <Memory1>
+  <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="IT1_TAG" radix="16" sizeText="" addressText=""/>
+ </Memory1>
+ <Memory2>
+  <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="IT1_TAG" radix="16" sizeText="" addressText=""/>
+ </Memory2>
+ <Memory3>
+  <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="IT1_TAG" radix="16" sizeText="" addressText=""/>
+ </Memory3>
+ <Memory4>
+  <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="IT1_TAG" radix="16" sizeText="" addressText=""/>
+ </Memory4>
+ <Project>
+  <ProjectSessionItem path="IT1_TAG"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Application"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Board Support"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Board Support;Modified BLE_Services"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Modified nRF_Libraries"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;nRF_Drivers"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;nRF_Libraries"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;nRF_Log"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;nRF_SoftDevice"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Source"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Source;decadriver"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Source;examples"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Source;examples;ex_05a_ds_twr_init"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Source;platform"/>
+  <ProjectSessionItem path="IT1_TAG;IT1_TAG;Third Parties"/>
+  <SourceCodeControlLogin password="F9BB6682F5D56822" user=""/>
+ </Project>
+ <Register1>
+  <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/MSP;CPU/PSP;CPU/PRIMASK;CPU/BASEPRI;CPU/FAULTMASK;CPU/CONTROL;CPU/internal" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context" name="IT1_TAG" decimalNodes="" octalNodes="" unsignedNodes=""/>
+ </Register1>
+ <Register2>
+  <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/MSP;CPU/PSP;CPU/PRIMASK;CPU/BASEPRI;CPU/FAULTMASK;CPU/CONTROL;CPU/internal" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context" name="IT1_TAG" decimalNodes="" octalNodes="" unsignedNodes=""/>
+ </Register2>
+ <Register3>
+  <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/MSP;CPU/PSP;CPU/PRIMASK;CPU/BASEPRI;CPU/FAULTMASK;CPU/CONTROL;CPU/internal" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context" name="IT1_TAG" decimalNodes="" octalNodes="" unsignedNodes=""/>
+ </Register3>
+ <Register4>
+  <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/MSP;CPU/PSP;CPU/PRIMASK;CPU/BASEPRI;CPU/FAULTMASK;CPU/CONTROL;CPU/internal" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context" name="IT1_TAG" decimalNodes="" octalNodes="" unsignedNodes=""/>
+ </Register4>
+ <Threads>
+  <ThreadsWindow showLists=""/>
+ </Threads>
+ <TraceWindow>
+  <Trace enabled="Yes"/>
+ </TraceWindow>
+ <Watch1>
+  <Watches active="1" update="Never"/>
+ </Watch1>
+ <Watch2>
+  <Watches active="0" update="Never"/>
+ </Watch2>
+ <Watch3>
+  <Watches active="0" update="Never"/>
+ </Watch3>
+ <Watch4>
+  <Watches active="0" update="Never"/>
+ </Watch4>
+ <Files>
+  <SessionOpenFile windowGroup="DockEditLeft" x="78" y="1270" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="1263" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="2" y="135" useTextEdit="1" openedFrom="C:/Users/UNLab/Desktop/IT1/IT1_TAG/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/pwm/app_pwm.h" selected="0" top="109" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="55" y="63" useTextEdit="1" openedFrom="C:/Users/UNLab/Desktop/IT1/IT1_TAG/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../integration/nrfx/legacy/nrf_drv_timer.h" selected="0" top="37" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="24" y="85" useTextEdit="1" openedFrom="C:/Users/UNLab/Desktop/IT1/IT1_TAG/integration/nrfx/legacy/nrf_drv_timer.h" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/drivers/include/nrfx_timer.h" selected="0" top="50" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="24" y="5641" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="5604" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="17" y="141" useTextEdit="1" openedFrom="C:/Users/UNLab/Desktop/IT1/IT1_TAG/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/drivers/include/nrfx_saadc.h" selected="0" top="115" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="15" y="260" useTextEdit="1" openedFrom="C:/Users/UNLab/Desktop/IT1/IT1_TAG/modules/nrfx/drivers/include/nrfx_saadc.h" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/hal/nrf_saadc.h" selected="0" top="234" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="26" y="118" useTextEdit="1" openedFrom="C:/Users/UNLab_Boss/Desktop/IT1/IT1_TAG/source/projectFile/uwb_ble_uart_RTOS/main.c" useBinaryEdit="0" left="0" path="../../../../modified_components/libraries/timer/app_timer.h" selected="0" top="95" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="112" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../modified_components/libraries/timer/app_timer_freertos.c" selected="0" top="89" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="229" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/log/nrf_log_backend_interface.h" selected="0" top="206" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="977" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/log/src/nrf_log_frontend.c" selected="0" top="954" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="58" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="35" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ds_twr_initiator.c" selected="0" top="63" codecName="Default"/>
+ </Files>
+ <ARMCrossStudioWindow activeProject="IT1_TAG" fileDialogDefaultFilter="*.asm;*.s;*.inc" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Users/UNLab/Desktop/IT1_TAG/IT1_TAG/modules/nrfx/drivers/src/nrfx_saadc.c&#xa;&#xa;C:/Users/UNLab/Desktop/IT1_TAG/IT1_TAG/modules/nrfx/drivers/src/nrfx_timer.c&#xa;&#xa;C:/Users/UNLab/Desktop/IT1_TAG/IT1_TAG/source/projectFile/modified_external/freertos/portable/CMSIS/nrf52/port_cmsis.c&#xa;&#xa;C:/Users/UNLab/Desktop/IT1_TAG/IT1_TAG/source/projectFile/modified_external/freertos/source/timers.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
+</session>

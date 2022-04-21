@@ -59,16 +59,15 @@
 int main(void)
 {
     /* Configure board. */
-    bsp_board_init(BSP_INIT_LEDS);
+    nrf_gpio_cfg_output(NRF_GPIO_PIN_MAP(0, 20));
+    nrf_gpio_cfg_output(NRF_GPIO_PIN_MAP(0, 13));
 
+    nrf_gpio_pin_set(NRF_GPIO_PIN_MAP(0, 20));  
     /* Toggle LEDs. */
     while (true)
     {
-        for (int i = 0; i < LEDS_NUMBER; i++)
-        {
-            bsp_board_led_invert(i);
-            nrf_delay_ms(500);
-        }
+            nrf_gpio_pin_toggle(NRF_GPIO_PIN_MAP(0, 13));            
+            nrf_delay_ms(1000);
     }
 }
 

@@ -1,9 +1,11 @@
 /*Nordic Include*/
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include "nordic_common.h"
 #include "nrf.h"
 #include "app_error.h"
+#include "nrf_delay.h"
 /*Softdevice Include*/
 #include "nrf_sdh.h"
 #include "nrf_sdh_soc.h"
@@ -54,13 +56,50 @@
 #include <shared_defines.h>
 #include <shared_functions.h>
 #include <example_selection.h>
+/*PWM Include*/
+#include "app_pwm.h"
 
-#define ADVERTISING_LED                 BSP_BOARD_LED_0                         /**< Is on when device is advertising. */
-#define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
-#define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
-#define LEDBUTTON_BUTTON                BSP_BUTTON_0                            /**< Button that will trigger the notification event with the LED Button Service */
 
-#define DEVICE_NAME                     "woorim_test"                         /**< Name of device. Will be included in the advertising data. */
+/*IT1_BOARD_TAG*/
+// Enable + PWR
+#define   bUWB_PWR_EN   NRF_GPIO_PIN_MAP(0,22)
+#define   bPWR_OFF      NRF_GPIO_PIN_MAP(0,20)
+// LED + BTN
+#define   bSTATE_LED    NRF_GPIO_PIN_MAP(0,15)
+#define   bCH_CP_LED    NRF_GPIO_PIN_MAP(0,13)
+#define   bBTN_SIG      NRF_GPIO_PIN_MAP(0,12)
+#define   bBTN_SOS      NRF_GPIO_PIN_MAP(1,0)
+// ADC
+#define   bBATT_SENS    NRF_GPIO_PIN_MAP(0,31)
+#define   bCH_COMP      NRF_GPIO_PIN_MAP(1,9)
+// PWM
+#define   bVibrator     NRF_GPIO_PIN_MAP(0,6)
+#define   bBUZZER       NRF_GPIO_PIN_MAP(0,24)
+//WATCHDOG
+#define   bWDOn         NRF_GPIO_PIN_MAP(0,26)
+#define   bWDI          NRF_GPIO_PIN_MAP(0,8)
+
+/*SAADC define*/
+#define SAMPLES_IN_BUFFER 5
+//volatile uint8_t state = 1;
+
+static const nrf_drv_timer_t m_timer = NRF_DRV_TIMER_INSTANCE(2);
+static nrf_saadc_value_t     m_buffer_pool[1][SAMPLES_IN_BUFFER];
+static nrf_ppi_channel_t     m_ppi_channel;
+static uint32_t              m_adc_evt_counter;
+
+/*PWM define*/
+APP_PWM_INSTANCE(PWM1,1);                 // Create the instance "PWM1" using TIMER1
+
+//#define ADVERTISING_LED                 BSP_BOARD_LED_0                         /**< Is on when device is advertising. */
+//#define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
+//#define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
+//#define LEDBUTTON_BUTTON                BSP_BUTTON_0                            /**< Button that will trigger the notification event with the LED Button Service */
+
+//#define PERIPHERAL_LINK                 NRF_SDH_BLE_PERIPHERAL_LINK_COUNT     /**< Number of peripheral links which can connect to BLE Central. */
+#define BOARDCHECK_INTERVAL         APP_TIMER_TICKS(500)//APP_TIMER_TICKS(30)   //1 : 60ms, 0.06               /**< Battery level measurement interval (ticks). This value corresponds to 120 seconds. */
+                                        
+#define DEVICE_NAME                     "testtest"//"woosang_test"                         /**< Name of device. Will be included in the advertising data. */
 
 #define APP_BLE_OBSERVER_PRIO               3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG                1                                       /**< A tag identifying the SoftDevice BLE configuration. */
@@ -68,10 +107,10 @@
 #define APP_ADV_INTERVAL                64                                      /**< The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms). */
 #define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
 
-#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(500, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.5 seconds).  */
-#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(1000, UNIT_1_25_MS)       /**< Maximum acceptable connection interval (1 second). */
-#define SLAVE_LATENCY                   1                                       /**< Slave latency. */
-#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(6000, UNIT_10_MS)         /**< Connection supervisory timeout (4 seconds). */
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(100, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.5 seconds).  */
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(200, UNIT_1_25_MS)       /**< Maximum acceptable connection interval (1 second). */
+#define SLAVE_LATENCY                   0                                       /**< Slave latency. */
+#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(10000, UNIT_10_MS)         /**< Connection supervisory timeout (4 seconds). */
 
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                       /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
@@ -101,11 +140,10 @@
 #define OSTIMER_WAIT_FOR_QUEUE             10                                      /**< Number of ticks to wait for the timer queue to be ready */
 
 #define MAX_ANC_NUM                        3                                       /* Maximum number of anchors tag can be connected */
-#define TAG_ID                             0x60                                   /* tag ID range : 0x50 ~ 0x99*/
+#define TAG_ID                             0x70                                   /* tag ID range : 0x50 ~ 0x99 */
 #define ANCHOR_ID                          0xAA                                   /* It'll be deleted when RCM message format negotiation is set */
 
 /*UWB Ranging Parameters define*/
-
 #define ALL_MSG_COMMON_LEN 10
 #define ALL_MSG_SN_IDX 2
 #define FINAL_MSG_POLL_TX_TS_IDX 10
@@ -118,10 +156,9 @@
 #define RESP_RX_TIMEOUT_UUS 300
 #define PRE_TIMEOUT 5
 
-#define RANGING_DWTIME   7488018               /**< Round delay offset time : e.g. 30ms*/
-#define RANGING_DWTIME25 2995207               //12ms :2995207
-//#define START_TX_DWTIME  2496006               /**< Delay for starting to transmit TX poll msg : e.g. 10ms*/
-#define START_TX_DWTIME25  249600               //1ms
+#define RANGING_DWTIME   249600*24              // 24ms **< Round delay offset time : 15ms = 3744009*/
+#define START_TX_DWTIME  249600*5               //1m*5
+
 
 /* Queue & Semaphore */
 static QueueHandle_t xQueue; // Queue for BLE-UWB task interface
@@ -132,6 +169,7 @@ typedef struct
     uint8_t round_ID;
 }Session_Data_t;
 
+/* (extern)Funtions Declaration */
 extern dwt_txconfig_t txconfig_options;
 extern example_ptr example_pointer;
 extern int unit_test_main(void);
@@ -141,10 +179,17 @@ int rcm_rx(void);
 void ACK_SESS_SEND(Session_Data_t sess_t);
 void ACK_UP_SEND(Session_Data_t up_t);
 
+
 /* BLE_Variables */
 BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                                   /**< BLE NUS service instance. */
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
 BLE_ADVERTISING_DEF(m_advertising);                                 /**< Advertising module instance. */
+
+/* Board_Variables */
+APP_TIMER_DEF(m_board_pwr_tmr);
+APP_TIMER_DEF(m_pwr_timer_id);
+static bool         PWR_OFF_enabled;
+static bool         BTN_SOS_enabled;
 
 BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 //BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
@@ -164,11 +209,12 @@ static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         
 
 //static nrf_saadc_value_t adc_buf[2];
 
-
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3; /**< Maximum length of data (in bytes) : 20byte
                                                                            that can be transmitted to the peer by the Nordic UART service module. */
-
 static uint16_t m_conn_handle         = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
+static TimerHandle_t board_timer;                               /**< Definition of battery timer. */
+
+static bool         PWM_enabled;
 
 //static ble_uuid_t m_adv_uuids[] =                                   /**< Universally unique service identifiers. */
 //{
@@ -211,8 +257,8 @@ static dwt_config_t config = {
     DWT_STS_LEN_64,/* STS length see allowed values in Enum dwt_sts_lengths_e */
     DWT_PDOA_M0      /* PDOA mode off */
 };
-
-static uint8_t RCM_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'R', 'C', 'M', ANCHOR_ID, 0, 0}; 
+//static uint8_t RCM_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'R', 'C', 'M', ANCHOR_ID, 0, 0}; 
+static uint8_t RCM_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'S', 'Y', 'N', 'C', 0xE1, ANCHOR_ID, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static uint8_t tx_poll_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'W', 'A', 'V', 'E', 0x21};
 static uint8_t rx_resp_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'V', 'E', 'W', 'A', 0x10, 0x02, 0, 0};
 static uint8_t tx_final_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'W', 'A', 'V', 'E', 0x23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -220,7 +266,7 @@ static uint8_t tx_final_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'W', 'A', 'V', 'E', 
 /* Frame sequence number, incremented after each transmission. */
 static uint8_t frame_seq_nb = 0;
 
-#define RX_BUF_LEN 20
+#define RX_BUF_LEN 30
 static uint8_t rx_buffer[RX_BUF_LEN];
 
 static uint32_t status_reg = 0;
@@ -229,7 +275,10 @@ static uint64_t poll_tx_ts;
 static uint64_t resp_rx_ts;
 static uint64_t final_tx_ts;
 static uint32_t ranging_time; 
-static uint8_t sess_check; 
+static uint8_t sess_check;
+static uint8_t cnt;
+static uint8_t Alert_check;
+//static uint8_t cnt;
 // DS-TWR Variable End
 
 /* Defining Handler(thread) Name */
@@ -257,6 +306,24 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
         app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
+
+static void pwm_init(void)
+{
+    ret_code_t  err_code;
+
+    /* 2-channel PWM, 200Hz, output on DK LED pins. */
+    app_pwm_config_t pwm1_cfg = APP_PWM_DEFAULT_CONFIG_2CH(245,24,6);
+    
+    /* Switch the polarity of the second channel. */
+    pwm1_cfg.pin_polarity[0] = APP_PWM_POLARITY_ACTIVE_HIGH;
+    pwm1_cfg.pin_polarity[1] = APP_PWM_POLARITY_ACTIVE_HIGH;
+
+
+    /* Initialize and enable PWM. */
+    err_code = app_pwm_init(&PWM1,&pwm1_cfg,NULL);
+    APP_ERROR_CHECK(err_code);   
+}
+
 /**@brief Function for starting advertising.
  */
 static void advertising_start(void)
@@ -266,7 +333,7 @@ static void advertising_start(void)
     err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
     APP_ERROR_CHECK(err_code);
 
-    bsp_board_led_on(ADVERTISING_LED);
+    //bsp_board_led_on(ADVERTISING_LED);
 }
 
 
@@ -439,11 +506,12 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
 {
     Session_Data_t xSendSession;
     BaseType_t xStatus;
-    const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
+    const TickType_t xTicksToWait = pdMS_TO_TICKS(1); // minimum tick time
 
     if (p_evt->type == BLE_NUS_EVT_RX_DATA)
     {
         uint8_t r_data[p_evt->params.rx_data.length];
+        ret_code_t  err_code;
 
         NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
         NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
@@ -509,13 +577,61 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
 
         case 0x03:
            if(r_data[2] == TAG_ID)
-           {
+           {              
               xSendSession.anchor_ID = r_data[1];
+              PWM_enabled = true; 
               printf("@@@@ Warning! Intensity : %d @@@@\n\n", r_data[3]);
+              if (r_data[3] == 0)
+              {
+                  Alert_check = 0;
+                  //app_pwm_enable(&PWM1);
+                  ////err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+                  ////APP_ERROR_CHECK(err_code);
+                  //err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+                  //APP_ERROR_CHECK(err_code);     
+                  //nrf_delay_ms(120);     
+                  //app_pwm_disable(&PWM1);
+
+                  //nrf_delay_ms(50);           
+                  //app_pwm_enable(&PWM1);
+                  //err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+                  //APP_ERROR_CHECK(err_code);
+                  //err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+                  //APP_ERROR_CHECK(err_code); 
+                  //nrf_delay_ms(50);     
+                  //app_pwm_disable(&PWM1);
+                  //nrf_delay_ms(50);                     
+              }              
+              else if (r_data[3] == 1)
+              {
+                  Alert_check = 1;
+                  //nrf_delay_ms(50);           
+                  //app_pwm_enable(&PWM1);
+                  //err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+                  //APP_ERROR_CHECK(err_code);
+                  //err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+                  //APP_ERROR_CHECK(err_code); 
+                  //nrf_delay_ms(50);     
+                  //app_pwm_disable(&PWM1);
+                  //nrf_delay_ms(50);
+              }
+              else if (r_data[3] == 2)
+              {
+                  //nrf_delay_ms(50);           
+                  //app_pwm_enable(&PWM1);
+                  //err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+                  //APP_ERROR_CHECK(err_code);
+                  //err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+                  //APP_ERROR_CHECK(err_code); 
+                  //nrf_delay_ms(50);     
+                  //app_pwm_disable(&PWM1);
+                  //nrf_delay_ms(50);                             
+              }              
            }
            else
            {
               printf("<0x03> TAG NUM Invalid!!\n\n");
+              PWM_enabled = false;
            }
            break;   
         }//switch end
@@ -696,6 +812,76 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     }
 }
 
+
+
+/**@brief Function for handling the Connected event.
+ *
+ * @param[in] p_gap_evt GAP event received from the BLE stack.
+ */
+//static void on_connected(const ble_gap_evt_t * const p_gap_evt)
+//{
+//    ret_code_t  err_code;
+//    uint32_t    periph_link_cnt = ble_conn_state_peripheral_conn_count(); // Number of peripheral links.
+
+//    printf("Connection with link 0x%x established.\n\n", p_gap_evt->conn_handle);
+
+//    // Assign connection handle to available instance of QWR module.
+//    for (uint32_t i = 0; i < PERIPHERAL_LINK; i++)
+//    {
+//        if (m_qwr[i].conn_handle == BLE_CONN_HANDLE_INVALID)
+//        {
+//            err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr[i], p_gap_evt->conn_handle);
+//            APP_ERROR_CHECK(err_code);
+//            break;
+//        }
+//    }
+
+//    err_code = app_button_enable();
+//    APP_ERROR_CHECK(err_code);
+
+//    // Update LEDs
+//    bsp_board_led_on(CONNECTED_LED);
+//    if (periph_link_cnt == PERIPHERAL_LINK)
+//    {
+//        bsp_board_led_off(ADVERTISING_LED);
+//    }
+//    else
+//    {
+//        // Continue advertising. More connections can be established because the maximum link count has not been reached.
+//        advertising_start();
+//    }
+//}
+
+
+/**@brief Function for handling the Disconnected event.
+ *
+ * @param[in] p_gap_evt GAP event received from the BLE stack.
+ */
+//static void on_disconnected(ble_gap_evt_t const * const p_gap_evt)
+//{
+//    ret_code_t  err_code;
+//    uint32_t    periph_link_cnt = ble_conn_state_peripheral_conn_count(); // Number of peripheral links.
+
+//    printf("Connection 0x%x has been disconnected. Reason: 0x%X\n\n",
+//                 p_gap_evt->conn_handle,
+//                 p_gap_evt->params.disconnected.reason);
+
+//    if (periph_link_cnt == 0)
+//    {
+//        bsp_board_led_off(CONNECTED_LED);
+//        err_code = app_button_disable();
+//        APP_ERROR_CHECK(err_code);
+//    }
+
+//    if (periph_link_cnt == (PERIPHERAL_LINK - 1))
+//    {
+//        // Advertising is not running when all connections are taken, and must therefore be started.
+//        advertising_start();
+//    }
+//}
+
+
+
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
@@ -709,17 +895,21 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) // bl
     {
         case BLE_GAP_EVT_CONNECTED:
             printf("Connected\n\n");
-            bsp_board_led_on(CONNECTED_LED);
-            bsp_board_led_off(ADVERTISING_LED);
+            //bsp_board_led_on(CONNECTED_LED);
+            //bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+            //on_connected(&p_ble_evt->evt.gap_evt);
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             printf("Disconnected\n\n\n");
-            bsp_board_led_off(CONNECTED_LED);
+            //bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             sess_check = 0;
+            Alert_check = 0;
+            cnt = 0;
             //round_ID = 0;
+            //on_disconnected(&p_ble_evt->evt.gap_evt);
             advertising_start();
             break;
 
@@ -857,18 +1047,18 @@ static void log_init(void)
 static void advertising_init(void)
 {
     ret_code_t    err_code;
-    ble_advdata_t advdata;
-    ble_advdata_t srdata;
+    ble_advdata_t advdata;   //Advertising data
+    ble_advdata_t srdata;    //Scan Response data
 
 
     // Build and set advertising data.
     memset(&advdata, 0, sizeof(advdata));
 
-    advdata.name_type          = BLE_ADVDATA_FULL_NAME;
-    advdata.include_appearance = true;
+    advdata.name_type          = BLE_ADVDATA_FULL_NAME;                    /**< Include full device name in advertising data. */
+    advdata.include_appearance = true;                                     /**< Determines if Appearance shall be included. */
     advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
-
+    // Build and set scan response data.
     memset(&srdata, 0, sizeof(srdata));
 
     err_code = ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
@@ -879,14 +1069,15 @@ static void advertising_init(void)
 
     ble_gap_adv_params_t adv_params;
 
-    // Set advertising parameters.
+    // Set advertising parameters. -> Start advertising
     memset(&adv_params, 0, sizeof(adv_params));
 
     adv_params.primary_phy     = BLE_GAP_PHY_1MBPS;
     adv_params.duration        = APP_ADV_DURATION;
-    adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
-    adv_params.p_peer_addr     = NULL;
-    adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
+    adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED; /**< Connectable and scannable undirected
+                                                                                        advertising events. */
+    adv_params.p_peer_addr     = NULL;                                    /**< Address of a known peer. */
+    adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;                     /**< Allow scan requests and connect requests from any device. */
     adv_params.interval        = APP_ADV_INTERVAL;
 
     err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &adv_params);
@@ -936,7 +1127,6 @@ void vApplicationIdleHook( void )
 #endif
 }
 
-
 /**@brief Function for initializing the clock.
  */
 static void clock_init(void)
@@ -945,99 +1135,387 @@ static void clock_init(void)
         APP_ERROR_CHECK(err_code);
 }
 
+
+/**@brief A function which is used for SAADC
+ */
+void timer_handler(nrf_timer_event_t event_type, void * p_context)
+{
+    printf("hi\n");
+}
+
+
+void saadc_sampling_event_init(void)
+{
+    ret_code_t err_code;
+
+    err_code = nrf_drv_ppi_init();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG;
+    timer_cfg.bit_width = NRF_TIMER_BIT_WIDTH_32;
+    err_code = nrf_drv_timer_init(&m_timer, &timer_cfg, timer_handler);
+    APP_ERROR_CHECK(err_code);
+
+    /* setup m_timer for compare event every 400ms */
+    uint32_t ticks = nrf_drv_timer_ms_to_ticks(&m_timer, 400);
+    nrf_drv_timer_extended_compare(&m_timer,
+                                   NRF_TIMER_CC_CHANNEL0,
+                                   ticks,
+                                   NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK,
+                                   false);
+    nrf_drv_timer_enable(&m_timer);
+
+    uint32_t timer_compare_event_addr = nrf_drv_timer_compare_event_address_get(&m_timer,
+                                                                                NRF_TIMER_CC_CHANNEL0);
+    uint32_t saadc_sample_task_addr   = nrf_drv_saadc_sample_task_get();
+
+    /* setup ppi channel so that timer compare event is triggering sample task in SAADC */
+    err_code = nrf_drv_ppi_channel_alloc(&m_ppi_channel);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = nrf_drv_ppi_channel_assign(m_ppi_channel,
+                                          timer_compare_event_addr,
+                                          saadc_sample_task_addr);
+    APP_ERROR_CHECK(err_code);
+}
+
+
+void saadc_sampling_event_enable(void)
+{
+    ret_code_t err_code = nrf_drv_ppi_channel_enable(m_ppi_channel);
+
+    APP_ERROR_CHECK(err_code);
+}
+
+
+void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
+{
+    if (p_event->type == NRF_DRV_SAADC_EVT_DONE)
+    {
+        ret_code_t err_code;
+        int16_t    BATT;
+
+        err_code = nrf_drv_saadc_buffer_convert(p_event->data.done.p_buffer, SAMPLES_IN_BUFFER);
+        APP_ERROR_CHECK(err_code);
+        
+        BATT = p_event->data.done.p_buffer[0];
+        printf("%d\n", BATT);
+        
+        // 1.6V~2.1V (0~100%)
+        if (BATT > 568 )
+        {
+            int ch_comp = nrf_gpio_pin_read(bCH_COMP);
+            if ( ch_comp == 1 )
+            {
+                nrf_gpio_pin_clear(bBATT_SENS);
+            }
+        }
+    }
+}
+
+
+void saadc_init(void)
+{
+    ret_code_t err_code;
+    nrf_saadc_channel_config_t channel_config =
+        NRF_DRV_SAADC_DEFAULT_CHANNEL_CONFIG_SE(NRF_SAADC_INPUT_AIN7);
+
+    err_code = nrf_drv_saadc_init(NULL, saadc_callback);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = nrf_drv_saadc_channel_init(0, &channel_config);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = nrf_drv_saadc_buffer_convert(m_buffer_pool[0], SAMPLES_IN_BUFFER);
+    APP_ERROR_CHECK(err_code);
+
+    //err_code = nrf_drv_saadc_buffer_convert(m_buffer_pool[1], SAMPLES_IN_BUFFER);
+    //APP_ERROR_CHECK(err_code);
+
+}
+
+static void timer_event(void)
+{
+      uint8_t             BTN_SOS, BTN_PWR, PWR_CNT;
+      uint32_t            err_code;
+      //static bool         PWR_OFF_enabled = false;
+      //static bool         BTN_SOS_enabled = false;
+   
+      BTN_SOS = nrf_gpio_pin_read(bBTN_SOS);   // SOS button
+      BTN_PWR = nrf_gpio_pin_read(bBTN_SIG);  // Power button
+
+      if(cnt == 2)
+      {
+          if(BTN_SOS == 1)
+          {
+              app_pwm_disable(&PWM1);
+          }
+          else if (BTN_SOS == 0)    //pressed
+          {
+              app_pwm_enable(&PWM1);
+              //err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+              //APP_ERROR_CHECK(err_code);
+              err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+              APP_ERROR_CHECK(err_code);     
+              nrf_delay_ms(500);     
+              app_pwm_disable(&PWM1);               
+          }
+      
+          if (BTN_PWR == 0)
+          {          
+              if (PWR_OFF_enabled == false)
+              {
+                  nrf_gpio_pin_set(bPWR_OFF);   // bPWR_OFF High
+                  nrf_gpio_pin_clear(bSTATE_LED); // bSTATE_LED ON
+
+                  err_code = app_timer_start(m_pwr_timer_id, APP_TIMER_TICKS(200), NULL);
+                  APP_ERROR_CHECK(err_code); 
+              }
+              else if (PWR_OFF_enabled == true)
+              {
+                  nrf_gpio_pin_toggle(bSTATE_LED);  // bSTATE_LED 1sec toggle 
+                  err_code = app_timer_start(m_pwr_timer_id, APP_TIMER_TICKS(3000), NULL);
+                  APP_ERROR_CHECK(err_code); 
+              }
+          }
+
+          else if (BTN_PWR == 1)
+          {
+              if (PWR_OFF_enabled == false)
+              {
+                  nrf_gpio_pin_toggle(bSTATE_LED);  // bSTATE_LED 1sec toggle 
+                  //nrf_gpio_pin_clear(bPWR_OFF);   // bPWR_OFF OFF
+                  //nrf_gpio_pin_set(bSTATE_LED);   // bSTATE_LED OFF
+                  //nrf_gpio_pin_clear(bUWB_PWR_EN);   // bUWB_PWR_EN OFF   
+                  if (Alert_check == 1)
+                  {        
+                      app_pwm_enable(&PWM1);
+                      //err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+                      //APP_ERROR_CHECK(err_code);
+                      err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+                      APP_ERROR_CHECK(err_code);     
+                      nrf_delay_ms(20);     
+                      app_pwm_disable(&PWM1);  
+                  }
+                  else if (Alert_check == 0)
+                  {
+                      app_pwm_disable(&PWM1);
+                  }     
+              }
+              else if (PWR_OFF_enabled == true)
+              {
+                  nrf_gpio_pin_toggle(bSTATE_LED);  // bSTATE_LED 1sec toggle
+                  //if (Alert_check == 1)
+                  //{        
+                  //    //app_pwm_enable(&PWM1);
+                  //    ////err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+                  //    ////APP_ERROR_CHECK(err_code);
+                  //    //err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+                  //    //APP_ERROR_CHECK(err_code);     
+                  //    //nrf_delay_ms(500);     
+                  //    //app_pwm_disable(&PWM1);  
+                  //}
+                  //else if (Alert_check == 0)
+                  //{
+                  //    app_pwm_disable(&PWM1);
+                  //}
+              }
+          } 
+          cnt = 0;
+      } // if cnt == 4
+      else
+      {
+          if (BTN_PWR == 0)
+          {          
+              if (PWR_OFF_enabled == false)
+              {
+                  nrf_gpio_pin_set(bPWR_OFF);   // bPWR_OFF High
+                  nrf_gpio_pin_clear(bSTATE_LED); // bSTATE_LED ON
+
+                  err_code = app_timer_start(m_pwr_timer_id, APP_TIMER_TICKS(1000), NULL);
+                  APP_ERROR_CHECK(err_code); 
+              }
+              else if (PWR_OFF_enabled == true)
+              {
+                  nrf_gpio_pin_toggle(bSTATE_LED);  // bSTATE_LED 1sec toggle 
+                  err_code = app_timer_start(m_pwr_timer_id, APP_TIMER_TICKS(3000), NULL);
+                  APP_ERROR_CHECK(err_code); 
+              }
+          }
+
+          else if (BTN_PWR == 1)
+          {
+              if (PWR_OFF_enabled == false)
+              {
+                  if (Alert_check == 1)
+                  {        
+                      app_pwm_enable(&PWM1);
+                      //err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+                      //APP_ERROR_CHECK(err_code);
+                      err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+                      APP_ERROR_CHECK(err_code);     
+                      nrf_delay_ms(20);     
+                      app_pwm_disable(&PWM1);  
+                  }
+                  else if (Alert_check == 0)
+                  {
+                      app_pwm_disable(&PWM1);
+                  }     
+              }
+          } 
+          cnt++;
+      } // else 
+}
+
+static void btn_pwr_timeout_handler(void)
+{
+    if (PWR_OFF_enabled == true)
+    {
+          nrf_gpio_pin_clear(bPWR_OFF);   // bPWR_OFF OFF
+          nrf_gpio_pin_set(bSTATE_LED);   // bSTATE_LED OFF
+          //nrf_gpio_pin_clear(bUWB_PWR_EN);   // bUWB_PWR_EN OFF        
+          PWR_OFF_enabled = false;
+    }
+    else if (PWR_OFF_enabled == false)
+    { 
+          nrf_gpio_pin_set(bPWR_OFF);   // bPWR_OFF On
+          nrf_gpio_pin_clear(bSTATE_LED);   // bSTATE_LED On
+          //nrf_gpio_pin_set(bUWB_PWR_EN);   // bUWB_PWR_EN On       
+          PWR_OFF_enabled = true;
+    }
+}
+
 /**@brief Function for the Timer initialization.
  *
  * @details Initializes the timer module. This creates and starts application timers.
  */
-//static void timers_init(void)
-//{
-//        // Initialize timer module.
-//        ret_code_t err_code = app_timer_init();
-//        APP_ERROR_CHECK(err_code);
+static void timers_init(void)
+{
+        // Initialize timer module.
+        ret_code_t err_code = app_timer_init();
+        APP_ERROR_CHECK(err_code);
 
-//        // Create timers.
-//        m_battery_timer = xTimerCreate("UWB",
-//                                       UWB_ROUND_INTERVAL,
-//                                       pdTRUE,
-//                                       NULL,
-//                                       HIHIHI);
-//        /* Error checking */
-//        if ( (NULL == m_battery_timer))
-//        {
-//                APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
-//        }
-//}
+        // Create timers.
+        board_timer = xTimerCreate("IT1_board",
+                                       BOARDCHECK_INTERVAL,
+                                       pdTRUE,
+                                       NULL,
+                                       timer_event);
 
-///**@brief   Function for starting application timers.
-// * @details Timers are run after the scheduler has started.
-// */
-//static void uwb_timers_start(void)
-//{
-//        // Start application timers.
-//        if (pdPASS != xTimerStart(m_battery_timer, 0))
-//        {
-//                APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
-//        }
-//}
+        err_code = app_timer_create(&m_pwr_timer_id,
+                                    APP_TIMER_MODE_SINGLE_SHOT,
+                                    btn_pwr_timeout_handler);
+        APP_ERROR_CHECK(err_code);
+                                    
+        /* Error checking */
+        if ( (NULL == board_timer))
+        {
+                APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
+        }        
+}
 
+/**@brief   Function for starting application timers.
+ * @details Timers are run after the scheduler has started.
+ */
+static void board_timers_start(void)
+{
+        // Start application timers.
+        if (pdPASS != xTimerStart(board_timer, OSTIMER_WAIT_FOR_QUEUE))
+        {
+                APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
+        }      
+}
 
 /**@brief Function for application main entry.
  */
 int main(void)
 {
-        bool erase_bonds;
-        uart_init();
-        log_init();
-        clock_init();
-        nrf_drv_clock_lfclk_request(NULL);
-        APP_ERROR_CHECK(nrf_stack_guard_init());
-      
-        printf("UWB Tag Start.\n");
-          
-        if (pdPASS != xTaskCreate(logger_thread, "LOGGER", 128, NULL, 2, &m_logger_thread))
-        {
-                APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
-        }
-
-        /* Configure and initialize the BLE stack. */
-        ble_stack_init();
-
-        /* Initialize modules. */
-        buttons_leds_init(&erase_bonds);
-        gap_params_init();
-        gatt_init();
-        services_init();
-        advertising_init();
-        conn_params_init();
+      bool erase_bonds;
+      //uart_init();
+      log_init();
+      clock_init();
+      nrf_drv_clock_lfclk_request(NULL);
+      //APP_ERROR_CHECK(nrf_stack_guard_init());
+    
+      printf("UWB Tag Start.\n");
         
-        /* UWB initialize */
-        nrf52840_dk_spi_init();
-        dw_irq_init();
-        nrf_drv_gpiote_in_event_disable(DW3000_IRQn_Pin);
-        nrf_delay_ms(2);
+      if (pdPASS != xTaskCreate(logger_thread, "LOGGER", 128, NULL, 2, &m_logger_thread))
+      {
+              APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
+      }
 
-        /* UWB Task start */
-        if (pdPASS != xTaskCreate(ds_twr_init, "UWB", 2*1024, NULL, 1, &uwb_thread))
-        {
-                APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
-        }
+      /* Configure and initialize the BLE stack. */
+      ble_stack_init();
 
-        /* Create a FreeRTOS task for the BLE stack. */
-        nrf_sdh_freertos_init(advertising_start, &erase_bonds);
+      /* Initialize modules. */
+      //buttons_leds_init(&erase_bonds);
+      IT1_board_init();
+      gap_params_init();
+      gatt_init();
+      services_init();
+      advertising_init();
+      conn_params_init();
+      //saadc_init();
+      //saadc_sampling_event_init();
+      //saadc_sampling_event_enable();
+      pwm_init();
+  
+      
+      /* UWB initialize */
+      nrf52840_dk_spi_init();
+      //dw_irq_init();
+      //nrf_drv_gpiote_in_event_disable(DW3000_IRQn_Pin);
+      nrf_delay_ms(2);
 
-        /* Create queue to store round_ID that is accessed by BLE & UWB tasks */
-        xQueue = xQueueCreate(QUEUE_LENGTH, QUEUE_ITEM_SIZE);
+      // Timer for board check
+      timers_init();
+      board_timers_start();
 
-        printf("UWB & BLE RTOS Start.\n");
-        vTaskStartScheduler();
-        for (;;)
-        {
-                APP_ERROR_HANDLER(NRF_ERROR_FORBIDDEN);
-        }
+
+      /* UWB Task start */
+      if (pdPASS != xTaskCreate(ds_twr_init, "UWB", 1024, NULL, 1, &uwb_thread))
+      {
+              APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
+      }
+
+      /* Create a FreeRTOS task for the BLE stack. */
+      nrf_sdh_freertos_init(advertising_start, &erase_bonds);
+
+      /* Create queue to store round_ID that is accessed by BLE & UWB tasks */
+      xQueue = xQueueCreate(QUEUE_LENGTH, QUEUE_ITEM_SIZE);
+
+      printf("UWB & BLE RTOS Start.\n");
+      vTaskStartScheduler();
+      for (;;)
+      {
+              APP_ERROR_HANDLER(NRF_ERROR_FORBIDDEN);
+      }
+}
+
+void IT1_board_init(void)
+{
+    nrf_gpio_cfg_output(NRF_GPIO_PIN_MAP(0,20));
+    nrf_gpio_pin_set(NRF_GPIO_PIN_MAP(0,20));         // bPWR_OFF HIGH 
+    nrf_gpio_cfg_output(NRF_GPIO_PIN_MAP(0,22));      // bUWB-PWR_EN
+    nrf_gpio_cfg_output(NRF_GPIO_PIN_MAP(0,15));      //  bSTATE_LED 
+
+    nrf_gpio_pin_set(NRF_GPIO_PIN_MAP(0,15));   
+    nrf_gpio_pin_set(bUWB_PWR_EN);   // bUWB_PWR_EN On     
+
+    nrf_gpio_cfg_input(bCH_COMP, NRF_GPIO_PIN_PULLUP);    // bCH_COMP (LOW: Charging, HIGH: Charged)
+    nrf_gpio_cfg_input(NRF_GPIO_PIN_MAP(1,0), NRF_GPIO_PIN_PULLUP);     // BTN_SOS
+    nrf_gpio_cfg_input(NRF_GPIO_PIN_MAP(0,12), NRF_GPIO_PIN_PULLUP);    // BTN_SIG
 }
 
 int ds_twr_init(void)
 {
+    uint32_t ulNotifiedValue;
+
+    Session_Data_t xReceivedSession;
+    BaseType_t xStatus;
+    const TickType_t xTicksToWait = pdMS_TO_TICKS(1); 
+
+    nrf_gpio_pin_set(NRF_GPIO_PIN_MAP(0,22)); 
 
     port_set_dw_ic_spi_fastrate();
 
@@ -1063,39 +1541,37 @@ int ds_twr_init(void)
 
     dwt_setrxantennadelay(RX_ANT_DLY);
     dwt_settxantennadelay(TX_ANT_DLY);
+
     //dwt_setrxaftertxdelay(POLL_TX_TO_RESP_RX_DLY_UUS);
     //dwt_setrxtimeout(RESP_RX_TIMEOUT_UUS);
     //dwt_setpreambledetecttimeout(PRE_TIMEOUT);
 
-    dwt_setleds(DWT_LEDS_ENABLE | DWT_LEDS_INIT_BLINK);
+    //dwt_setleds(DWT_LEDS_ENABLE | DWT_LEDS_INIT_BLINK);
 
-    while (1)
-    {   
+    while(1) 
+    {
+       // xLastWakeTime = xTaskGetTickCount();
+        //vTaskDelayUntil(&xLastWakeTime,  pdMS_TO_TICKS(240));
+        //nrf_gpio_pin_toggle(NRF_GPIO_PIN_MAP(0,24)); 
       if(sess_check == 1)
       {
-        Session_Data_t xReceivedSession;
-        BaseType_t xStatus;
-        const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
-
         xStatus = xQueueReceive(xQueue, &xReceivedSession, xTicksToWait);
         if(xStatus == pdPASS)
         {
-            printf("Round ID : %d", xReceivedSession.round_ID);
+            printf("Round ID : %d\n\n", xReceivedSession.round_ID);
         }
 
+        //const TickType_t xWakePeriod = 240*portTICK_PERIOD_MS - 15*(xReceivedSession.round_ID) -10*portTICK_PERIOD_MS;
         //vTaskResume(uwb_thread);
         uint32_t rcm_rx_time;
-
         do{
            rcm_rx_time=rcm_rx();
         }while((rcm_rx_time == 0) || (rcm_rx_time == 1));
 
         dwt_setreferencetrxtime(rcm_rx_time);
-
-        ranging_time = RANGING_DWTIME25 * xReceivedSession.round_ID + START_TX_DWTIME25 - TX_ANT_DLY;
-
+        ranging_time = RANGING_DWTIME * xReceivedSession.round_ID + START_TX_DWTIME - TX_ANT_DLY;
         dwt_setdelayedtrxtime(ranging_time);
-        
+         
         tx_poll_msg[ALL_MSG_SN_IDX] = frame_seq_nb;
         dwt_writetxdata(sizeof(tx_poll_msg), tx_poll_msg, 0); /* Zero offset in TX buffer. */
         dwt_writetxfctrl(sizeof(tx_poll_msg)+FCS_LEN, 0, 1); /* Zero offset in TX buffer, ranging. */
@@ -1160,6 +1636,7 @@ int ds_twr_init(void)
                     { };
 
                     printf("DS_TWR Successed!\n\n\n");
+                    //nrf_gpio_pin_toggle(NRF_GPIO_PIN_MAP(0,24));
 
                     /* Clear TXFRS event. */
                     dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS_BIT_MASK);
@@ -1174,15 +1651,15 @@ int ds_twr_init(void)
             /* Clear RX error/timeout events in the DW IC status register. */
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR | SYS_STATUS_TXFRS_BIT_MASK);
         }
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(8*12));
+	//nrf_gpio_pin_toggle(NRF_GPIO_PIN_MAP(0,24));
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(216));
      }// if sess_check == 0
   }// while(1)
-  
 }
 
 int rcm_rx(void)
 {
-      printf("@@@@@@@@@@@rcm RX start@@@@@@@@@@@\n\n");
+      //printf("@@@@@@@@@@@rcm RX start@@@@@@@@@@@\n\n");
       
       uint32_t rcm_rx_ts;
 
@@ -1214,7 +1691,6 @@ int rcm_rx(void)
               if (memcmp(rx_buffer, RCM_msg, 8) == 0)
               {                  
                   rcm_rx_ts = dwt_readrxtimestamphi32(); /* Retrieve RCM reception timestamp to fuction parameter */
-                  
                   xLastWakeTime = xTaskGetTickCount();
               }
               else

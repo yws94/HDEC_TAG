@@ -135,11 +135,11 @@ void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
         APP_ERROR_CHECK(err_code);
 
         int i;
-        NRF_LOG_INFO("ADC event number: %d", (int)m_adc_evt_counter);
+        printf("ADC event number: %d\n", (int)m_adc_evt_counter);
 
         for (i = 0; i < SAMPLES_IN_BUFFER; i++)
         {
-            NRF_LOG_INFO("%d", p_event->data.done.p_buffer[i]);
+            printf("%d\n", p_event->data.done.p_buffer[i]);
         }
         m_adc_evt_counter++;
     }
@@ -183,7 +183,7 @@ int main(void)
     saadc_init();
     saadc_sampling_event_init();
     saadc_sampling_event_enable();
-    NRF_LOG_INFO("SAADC HAL simple example started.");
+    printf("SAADC HAL simple example started.\n");
 
     while (1)
     {

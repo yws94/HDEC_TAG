@@ -24,11 +24,12 @@ extern "C" {
 #include <sys/types.h>
 #include <sdk_config.h>
 #include <boards.h>
-#if defined(BOARD_PCA10040)
-#include <pca10040.h>
-#elif defined(BOARD_PCA10056)
-#include <pca10056.h>
-#endif
+#include <IT1_TAG.h>
+//#if defined(BOARD_PCA10040)
+//#include <pca10040.h>
+//#elif defined(BOARD_PCA10056)
+//#include <pca10056.h>
+//#endif
 #include <nrf_error.h>
 #include <nrf_delay.h>
 #include <nrf_drv_gpiote.h>

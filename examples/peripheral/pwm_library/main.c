@@ -71,32 +71,50 @@ int main(void)
     ret_code_t err_code;
 
     /* 2-channel PWM, 200Hz, output on DK LED pins. */
-    app_pwm_config_t pwm1_cfg = APP_PWM_DEFAULT_CONFIG_2CH(5000L, BSP_LED_0, BSP_LED_1);
+    app_pwm_config_t pwm1_cfg = APP_PWM_DEFAULT_CONFIG_2CH(245, 24, 6);
 
     /* Switch the polarity of the second channel. */
     pwm1_cfg.pin_polarity[1] = APP_PWM_POLARITY_ACTIVE_HIGH;
+    pwm1_cfg.pin_polarity[0] = APP_PWM_POLARITY_ACTIVE_HIGH;
 
     /* Initialize and enable PWM. */
-    err_code = app_pwm_init(&PWM1,&pwm1_cfg,pwm_ready_callback);
+    err_code = app_pwm_init(&PWM1,&pwm1_cfg,NULL);
     APP_ERROR_CHECK(err_code);
     app_pwm_enable(&PWM1);
 
     uint32_t value;
     while (true)
     {
-        for (uint8_t i = 0; i < 40; ++i)
-        {
-            value = (i < 20) ? (i * 5) : (100 - (i - 20) * 5);
+        //for (uint8_t i = 0; i < 40; ++i)
+        //{
+        //    value = (i < 20) ? (i * 5) : (100 - (i - 20) * 5);
 
-            ready_flag = false;
+        //    ready_flag = false;
             /* Set the duty cycle - keep trying until PWM is ready... */
-            while (app_pwm_channel_duty_set(&PWM1, 0, value) == NRF_ERROR_BUSY);
+            //while (app_pwm_channel_duty_set(&PWM1, 0, value) == NRF_ERROR_BUSY);
 
             /* ... or wait for callback. */
-            while (!ready_flag);
-            APP_ERROR_CHECK(app_pwm_channel_duty_set(&PWM1, 1, value));
-            nrf_delay_ms(25);
-        }
+            //while (!ready_flag);
+            //APP_ERROR_CHECK(app_pwm_channel_duty_set(&PWM1, 1, value));
+            //nrf_delay_ms(25);
+          app_pwm_enable(&PWM1);
+          err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+          APP_ERROR_CHECK(err_code);
+          err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+          APP_ERROR_CHECK(err_code);     
+          nrf_delay_ms(500);     
+          app_pwm_disable(&PWM1);  
+          nrf_delay_ms(500);  
+          app_pwm_enable(&PWM1);
+          err_code = app_pwm_channel_duty_set(&PWM1,1,50);
+          APP_ERROR_CHECK(err_code);
+          err_code = app_pwm_channel_duty_set(&PWM1,0,37.5);
+          APP_ERROR_CHECK(err_code);     
+          nrf_delay_ms(500);     
+          app_pwm_disable(&PWM1);
+          nrf_delay_ms(500);
+
+        
     }
 
 }

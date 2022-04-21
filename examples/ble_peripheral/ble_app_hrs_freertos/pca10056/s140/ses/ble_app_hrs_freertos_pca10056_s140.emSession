@@ -14,6 +14,7 @@
   <ProjectSessionItem path="ble_app_hrs_freertos_pca10056_s140"/>
   <ProjectSessionItem path="ble_app_hrs_freertos_pca10056_s140;ble_app_hrs_freertos_pca10056_s140"/>
   <ProjectSessionItem path="ble_app_hrs_freertos_pca10056_s140;ble_app_hrs_freertos_pca10056_s140;Application"/>
+  <ProjectSessionItem path="ble_app_hrs_freertos_pca10056_s140;ble_app_hrs_freertos_pca10056_s140;nRF_BLE_Services"/>
   <ProjectSessionItem path="ble_app_hrs_freertos_pca10056_s140;ble_app_hrs_freertos_pca10056_s140;Third Parties"/>
  </Project>
  <Register1/>
@@ -39,8 +40,11 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="13" y="972" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="0" top="946" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="5" y="1900" useTextEdit="1" openedFrom="C:/Users/UnLab/Desktop/project_peripheral/examples/ble_peripheral/ble_app_hrs_freertos/main.c" useBinaryEdit="0" left="0" path="../../../../../../external/freertos/source/tasks.c" selected="1" top="1882" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="22" y="321" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="240" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="5" y="1900" useTextEdit="1" openedFrom="C:/Users/UnLab/Desktop/project_peripheral/examples/ble_peripheral/ble_app_hrs_freertos/main.c" useBinaryEdit="0" left="0" path="../../../../../../external/freertos/source/tasks.c" selected="0" top="1882" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="207" useTextEdit="1" openedFrom="C:/Users/UNLab/Desktop/IT1/IT1_TAG/examples/ble_peripheral/ble_app_hrs_freertos/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/nordic_common.h" selected="0" top="162" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="13044" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="12954" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="5" y="361" useTextEdit="1" openedFrom="C:/Users/UNLab/Desktop/IT1/IT1_TAG/examples/ble_peripheral/ble_app_hrs_freertos/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/ble/ble_services/ble_hrs/ble_hrs.c" selected="0" top="316" codecName="Default"/>
  </Files>
  <ARMCrossStudioWindow activeProject="ble_app_hrs_freertos_pca10056_s140" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>
